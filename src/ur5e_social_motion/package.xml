@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
+<?xml version="1.0"?>
 <package format="3">
   <name>ur5e_social_motion</name>
   <version>0.0.1</version>
-  <description>UR5e social motion package for pose sequences and motion execution.</description>
+  <description>UR5e social motion package for social interaction pose sequences.</description>
 
   <maintainer email="your_email@example.com">Your Name</maintainer>
   <license>Apache-2.0</license>
@@ -10,11 +11,9 @@
   <buildtool_depend>ament_python</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <depend>ament_index_python</depend>
 
   <exec_depend>python3-yaml</exec_depend>
 
