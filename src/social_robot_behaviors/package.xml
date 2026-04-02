@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>social_robot_behaviors</name>
+  <version>0.0.1</version>
+  <description>High-level social robot behaviors such as handshake and high-five.</description>
+
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <exec_depend>ur5e_social_motion</exec_depend>
+  <exec_depend>social_robot_perception</exec_depend>
+  <exec_depend>social_robot_hri</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
