@@ -15,20 +15,19 @@ def _load_yaml_file(yaml_file):
         return yaml.safe_load(f)
 
 
-def _mm_to_m(xyz_mm):
-    return [float(v) / 1000.0 for v in xyz_mm]
-
-
 def _build_step_node(step, index):
     step_name = step.get("name", f"step_{index}")
     target_xyz_mm = step.get("target_xyz_mm", [0.0, 0.0, 0.0])
     target_rpy_deg = step.get("target_rpy_deg", [0.0, 0.0, 0.0])
 
-    seed_joints_deg = step.get("seed_joints_deg", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    use_seed_joints = "seed_joints_deg" in step
-    execute = step.get("execute", True)
+    seed_joints_deg = step.get("seed_joints_deg", [0.0, -90.0, 90.0, -90.0, -90.0, 0.0])
+    use_seed_joints = step.get("use_seed_joints", True)
+    seed_from_joint_states = step.get("seed_from_joint_states", True)
 
-    target_xyz_m = _mm_to_m(target_xyz_mm)
+    execute = step.get("execute", True)
+    max_velocity_scale = step.get("max_velocity_scale", 0.15)
+    max_acceleration_scale = step.get("max_acceleration_scale", 0.15)
+    print_joints = step.get("print_joints", True)
 
     return Node(
         package="ur5e_social_motion",
@@ -39,13 +38,19 @@ def _build_step_node(step, index):
             {
                 "step_name": step_name,
                 "reference_frame": "table",
-                "target_xyz_m": target_xyz_m,
+                "table_frame_yaw_offset_deg": 180.0,
+                "target_xyz_mm": target_xyz_mm,
                 "target_rpy_deg": target_rpy_deg,
                 "seed_joints_deg": seed_joints_deg,
                 "use_seed_joints": use_seed_joints,
+                "seed_from_joint_states": seed_from_joint_states,
                 "execute": execute,
                 "group_name": "ur_manipulator",
                 "ik_link_name": "tool0",
+                "ik_timeout_sec": 0.2,
+                "max_velocity_scale": max_velocity_scale,
+                "max_acceleration_scale": max_acceleration_scale,
+                "print_joints": print_joints,
             }
         ],
     )
