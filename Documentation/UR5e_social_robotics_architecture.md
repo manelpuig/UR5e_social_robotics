@@ -113,3 +113,23 @@ rosdep install -y -r -i --rosdistro ${ROS_DISTRO} --from-paths src
 colcon build --merge-install --symlink-install --cmake-args "-DCMAKE_BUILD_TYPE=Release"
 source install/setup.bash
 ````
+````xml
+cd ~/UR5e_social_robotics
+git rm --cached -r src/pymoveit2
+rm -rf src/pymoveit2/.git
+git add src/pymoveit2
+git commit -m "Vendor pymoveit2 inside workspace"
+git push
+````
+
+To compile:
+````bash
+colcon build --merge-install
+````
+
+Verification:
+````bash
+ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=0.0.0.0 use_fake_hardware:=true launch_rviz:=false
+ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=true
+ros2 launch ur5e_social_motion ur5e_social_init.launch.py
+````
