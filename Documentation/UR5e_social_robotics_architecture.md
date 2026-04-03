@@ -102,3 +102,14 @@ ur5e_social_motion/
 ├── setup.py
 └── setup.cfg
 ```
+
+## Install pymoveit2
+
+````xml
+cd ~/UR5e_social_robotics/src
+git clone https://github.com/AndrejOrsula/pymoveit2.git
+cd ~/UR5e_social_robotics
+rosdep install -y -r -i --rosdistro ${ROS_DISTRO} --from-paths src
+colcon build --merge-install --symlink-install --cmake-args "-DCMAKE_BUILD_TYPE=Release"
+source install/setup.bash
+````
