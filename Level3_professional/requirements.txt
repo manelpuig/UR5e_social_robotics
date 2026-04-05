@@ -1,0 +1,7 @@
+opencv-python
+face_recognition
+SpeechRecognition
+pyttsx3
+openai
+python-dotenv
+numpy

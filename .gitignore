@@ -2,18 +2,31 @@ build/
 install/
 log/
 
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-
-.vscode/
-.idea/
-
-.DS_Store
-Thumbs.db
-
 *.swp
 *.swo
 
-.env
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+
+# Packaging
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
