@@ -1,5 +1,5 @@
-steps:
-  - name: handshake_ready
+sequence:
+  - step_name: handshake_ready
     target_xyz_mm: [500.0, -200.0, 650.0]
     target_rpy_deg: [90.0, 0.0, 90.0]
     seed_joints_deg: [20.0, -70.0, 95.0, -115.0, -90.0, 20.0]
@@ -8,7 +8,7 @@ steps:
     max_acceleration_scale: 0.12
     print_joints: true
 
-  - name: handshake_forward
+  - step_name: handshake_forward
     target_xyz_mm: [600.0, -200.0, 650.0]
     target_rpy_deg: [90.0, 0.0, 90.0]
     seed_joints_deg: [25.0, -65.0, 90.0, -115.0, -90.0, 25.0]

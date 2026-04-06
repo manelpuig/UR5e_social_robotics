@@ -10,31 +10,27 @@ from social_robot_lib.perception.face_identifier import identify_person
 from social_robot_lib.interaction.command_router import route_command
 from social_robot_lib.interaction.conversation_manager import (
     greeting,
-    confirmation
+    confirmation,
 )
+
+from social_robot_behaviors.init_behavior import execute_init_behavior
+from social_robot_behaviors.handshake_behavior import execute_handshake_behavior
+from social_robot_behaviors.highfive_behavior import execute_highfive_behavior
 
 
 class SocialBehaviorManager(Node):
 
     def __init__(self):
-        super().__init__('social_behavior_manager')
-
+        super().__init__("social_behavior_manager")
         self.get_logger().info("Social behavior manager started")
 
         self.run_main_loop()
 
-
     def run_main_loop(self):
-
-        # Step 1: detect person
         person = identify_person()
-
-        greet_text = greeting(person)
-        speak(greet_text)
+        speak(greeting(person))
 
         while rclpy.ok():
-
-            # Step 2: listen
             text = listen()
 
             if text is None:
@@ -47,36 +43,25 @@ class SocialBehaviorManager(Node):
 
             self.get_logger().info(f"Command detected: {command_text}")
 
-            # Step 3: interpret command
             command = route_command(command_text)
-
             self.get_logger().info(f"Intent: {command}")
 
-            # Step 4: confirm action
             speak(confirmation(command))
 
-            # Step 5: execute motion
-            self.execute_motion(command)
+            self.execute_behavior(command)
 
             if command == "exit":
                 break
 
-
-    def execute_motion(self, command):
-
-        """
-        This function will later call ur5e_social_motion.
-        For now it prints the requested behavior.
-        """
-
+    def execute_behavior(self, command: str):
         if command == "init":
-            self.get_logger().info("Executing INIT motion")
+            execute_init_behavior(logger=self.get_logger())
 
         elif command == "hand_shake":
-            self.get_logger().info("Executing HANDSHAKE motion")
+            execute_handshake_behavior(logger=self.get_logger())
 
         elif command == "give_me_5":
-            self.get_logger().info("Executing HIGH FIVE motion")
+            execute_highfive_behavior(logger=self.get_logger())
 
         elif command == "exit":
             self.get_logger().info("Exit command received")
@@ -86,12 +71,14 @@ class SocialBehaviorManager(Node):
 
 
 def main(args=None):
-
     rclpy.init(args=args)
 
     node = SocialBehaviorManager()
 
-    rclpy.spin(node)
-
     node.destroy_node()
-    rclpy.shutdown()
+    if rclpy.ok():
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

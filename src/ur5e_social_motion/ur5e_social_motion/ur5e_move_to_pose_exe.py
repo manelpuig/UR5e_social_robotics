@@ -2,6 +2,7 @@
 
 import math
 import sys
+from typing import Optional, Dict, Any
 
 import rclpy
 from rclpy.node import Node
@@ -57,78 +58,43 @@ class UR5eMoveToPoseViaIK(Node):
       - reference_frame:
           * "base"  -> pose already in ROS base_link convention
           * "table" -> intuitive table/workspace frame
-
-    Table frame convention:
-      - roll = 0   -> palm facing upward
-      - roll = 90  -> palm facing toward the human
-      - yaw = 0    -> high-five orientation
-      - yaw = 90   -> handshake orientation
-
-    Conversion currently applied for table -> base_link:
-      x_base = -x_table
-      y_base = -y_table
-      z_base =  z_table
-      yaw_base = yaw_table + table_frame_yaw_offset_deg
-      roll_base = roll_table
-      pitch_base = pitch_table
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__("ur5e_move_to_pose")
 
+        if config is None:
+            config = {}
+
         # --- Step info
-        self.declare_parameter("step_name", "unnamed_step")
+        self.step_name = str(config.get("step_name", "unnamed_step"))
 
         # --- Pose target in social package convention
-        self.declare_parameter("target_xyz_mm", [350.0, 0.0, 450.0])
-        self.declare_parameter("target_rpy_deg", [0.0, 0.0, 0.0])
+        self.target_xyz_mm = [float(x) for x in config.get("target_xyz_mm", [350.0, 0.0, 450.0])]
+        self.target_rpy_deg = [float(x) for x in config.get("target_rpy_deg", [0.0, 0.0, 0.0])]
 
         # --- Pose input convention
-        self.declare_parameter("reference_frame", "table")   # "base" or "table"
-        self.declare_parameter("table_frame_yaw_offset_deg", 180.0)
+        self.reference_frame = str(config.get("reference_frame", "table")).strip().lower()
+        self.table_frame_yaw_offset_deg = float(config.get("table_frame_yaw_offset_deg", 180.0))
 
         # --- IK settings
-        self.declare_parameter("group_name", "ur_manipulator")
-        self.declare_parameter("ik_link_name", "tool0")
-        self.declare_parameter(
+        self.group_name = str(config.get("group_name", "ur_manipulator"))
+        self.ik_link_name = str(config.get("ik_link_name", "tool0"))
+        self.seed_joints_deg = [float(x) for x in config.get(
             "seed_joints_deg",
             [0.0, -90.0, 90.0, -90.0, -90.0, 0.0],
-        )
-        self.declare_parameter("use_seed_joints", True)
-        self.declare_parameter("seed_from_joint_states", True)
-        self.declare_parameter("ik_timeout_sec", 0.2)
+        )]
+        self.use_seed_joints = bool(config.get("use_seed_joints", True))
+        self.seed_from_joint_states = bool(config.get("seed_from_joint_states", True))
+        self.ik_timeout = float(config.get("ik_timeout_sec", 0.2))
 
         # --- Motion settings
-        self.declare_parameter("max_velocity_scale", 0.15)
-        self.declare_parameter("max_acceleration_scale", 0.15)
-        self.declare_parameter("execute", True)
+        self.max_velocity_scale = float(config.get("max_velocity_scale", 0.15))
+        self.max_acceleration_scale = float(config.get("max_acceleration_scale", 0.15))
+        self.execute_motion = bool(config.get("execute", True))
 
         # --- Debug
-        self.declare_parameter("print_joints", True)
-
-        # Read params
-        self.step_name = str(self.get_parameter("step_name").value)
-
-        self.target_xyz_mm = [float(x) for x in self.get_parameter("target_xyz_mm").value]
-        self.target_rpy_deg = [float(x) for x in self.get_parameter("target_rpy_deg").value]
-
-        self.reference_frame = str(self.get_parameter("reference_frame").value).strip().lower()
-        self.table_frame_yaw_offset_deg = float(
-            self.get_parameter("table_frame_yaw_offset_deg").value
-        )
-
-        self.group_name = str(self.get_parameter("group_name").value)
-        self.ik_link_name = str(self.get_parameter("ik_link_name").value)
-
-        self.seed_joints_deg = [float(x) for x in self.get_parameter("seed_joints_deg").value]
-        self.use_seed_joints = bool(self.get_parameter("use_seed_joints").value)
-        self.seed_from_joint_states = bool(self.get_parameter("seed_from_joint_states").value)
-        self.ik_timeout = float(self.get_parameter("ik_timeout_sec").value)
-
-        self.max_velocity_scale = float(self.get_parameter("max_velocity_scale").value)
-        self.max_acceleration_scale = float(self.get_parameter("max_acceleration_scale").value)
-        self.execute_motion = bool(self.get_parameter("execute").value)
-        self.print_joints = bool(self.get_parameter("print_joints").value)
+        self.print_joints = bool(config.get("print_joints", True))
 
         # Basic validation
         if len(self.target_xyz_mm) != 3:
@@ -138,9 +104,7 @@ class UR5eMoveToPoseViaIK(Node):
         if len(self.seed_joints_deg) != 6:
             raise ValueError("Parameter 'seed_joints_deg' must contain exactly 6 values.")
         if self.reference_frame not in ("base", "table"):
-            raise ValueError(
-                "Parameter 'reference_frame' must be either 'base' or 'table'."
-            )
+            raise ValueError("Parameter 'reference_frame' must be either 'base' or 'table'.")
 
         # Precompute converted values for logging
         self.target_xyz_m = [v / 1000.0 for v in self.target_xyz_mm]
@@ -200,9 +164,6 @@ class UR5eMoveToPoseViaIK(Node):
         self.get_logger().info("=" * 70)
 
     def _convert_input_pose_to_base(self, xyz_m, rpy_rad):
-        """
-        Convert input pose convention to ROS base_link convention.
-        """
         if self.reference_frame == "base":
             return list(xyz_m), list(rpy_rad)
 
@@ -275,9 +236,7 @@ class UR5eMoveToPoseViaIK(Node):
         req.ik_request.ik_link_name = self.ik_link_name
         req.ik_request.pose_stamped = pose
         req.ik_request.timeout.sec = int(self.ik_timeout)
-        req.ik_request.timeout.nanosec = int(
-            (self.ik_timeout - int(self.ik_timeout)) * 1e9
-        )
+        req.ik_request.timeout.nanosec = int((self.ik_timeout - int(self.ik_timeout)) * 1e9)
 
         # 4) Choose IK seed
         seed_positions = list(self.seed_joints_rad)
@@ -352,9 +311,12 @@ class UR5eMoveToPoseViaIK(Node):
             self._finish_error(f"MoveIt execution failed: {e}")
 
 
-def main():
-    rclpy.init()
-    node = UR5eMoveToPoseViaIK()
+def run_pose_motion(config: Dict[str, Any]) -> int:
+    """
+    Reusable function to execute one social pose motion from Python code.
+    Returns the process-style exit code: 0 success, 1 error, 130 interrupted.
+    """
+    node = UR5eMoveToPoseViaIK(config=config)
 
     try:
         while rclpy.ok() and not node._finished:
@@ -364,10 +326,27 @@ def main():
         node._exit_code = 130
     finally:
         node.destroy_node()
+
+    return node._exit_code
+
+
+def main():
+    rclpy.init()
+    exit_code = 1
+
+    try:
+        node = UR5eMoveToPoseViaIK()
+        while rclpy.ok() and not node._finished:
+            rclpy.spin_once(node, timeout_sec=0.1)
+        exit_code = node._exit_code
+        node.destroy_node()
+    except KeyboardInterrupt:
+        exit_code = 130
+    finally:
         if rclpy.ok():
             rclpy.shutdown()
 
-    sys.exit(node._exit_code)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

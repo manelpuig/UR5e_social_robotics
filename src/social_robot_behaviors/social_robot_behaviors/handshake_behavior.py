@@ -1,6 +1,8 @@
-def main():
-    print("Node started")
+from ur5e_social_motion.social_motions import run_handshake_sequence
 
 
-if __name__ == "__main__":
-    main()
+def execute_handshake_behavior(logger=None):
+    if logger is not None:
+        logger.info("Executing HANDSHAKE behavior")
+
+    return run_handshake_sequence(logger=logger)
