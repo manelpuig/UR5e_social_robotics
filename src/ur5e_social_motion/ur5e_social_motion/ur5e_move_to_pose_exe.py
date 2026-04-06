@@ -66,36 +66,52 @@ class UR5eMoveToPoseViaIK(Node):
         if config is None:
             config = {}
 
-        # --- Step info
-        self.step_name = str(config.get("step_name", "unnamed_step"))
+        # --- Declare ROS parameters, using config values as defaults when provided
+        self.declare_parameter("step_name", config.get("step_name", "unnamed_step"))
 
-        # --- Pose target in social package convention
-        self.target_xyz_mm = [float(x) for x in config.get("target_xyz_mm", [350.0, 0.0, 450.0])]
-        self.target_rpy_deg = [float(x) for x in config.get("target_rpy_deg", [0.0, 0.0, 0.0])]
+        self.declare_parameter("target_xyz_mm", config.get("target_xyz_mm", [350.0, 0.0, 450.0]))
+        self.declare_parameter("target_rpy_deg", config.get("target_rpy_deg", [0.0, 0.0, 0.0]))
 
-        # --- Pose input convention
-        self.reference_frame = str(config.get("reference_frame", "table")).strip().lower()
-        self.table_frame_yaw_offset_deg = float(config.get("table_frame_yaw_offset_deg", 180.0))
+        self.declare_parameter("reference_frame", config.get("reference_frame", "table"))
+        self.declare_parameter("table_frame_yaw_offset_deg", config.get("table_frame_yaw_offset_deg", 180.0))
 
-        # --- IK settings
-        self.group_name = str(config.get("group_name", "ur_manipulator"))
-        self.ik_link_name = str(config.get("ik_link_name", "tool0"))
-        self.seed_joints_deg = [float(x) for x in config.get(
+        self.declare_parameter("group_name", config.get("group_name", "ur_manipulator"))
+        self.declare_parameter("ik_link_name", config.get("ik_link_name", "tool0"))
+        self.declare_parameter(
             "seed_joints_deg",
-            [0.0, -90.0, 90.0, -90.0, -90.0, 0.0],
-        )]
-        self.use_seed_joints = bool(config.get("use_seed_joints", True))
-        self.seed_from_joint_states = bool(config.get("seed_from_joint_states", True))
-        self.ik_timeout = float(config.get("ik_timeout_sec", 0.2))
+            config.get("seed_joints_deg", [0.0, -90.0, 90.0, -90.0, -90.0, 0.0]),
+        )
+        self.declare_parameter("use_seed_joints", config.get("use_seed_joints", True))
+        self.declare_parameter("seed_from_joint_states", config.get("seed_from_joint_states", True))
+        self.declare_parameter("ik_timeout_sec", config.get("ik_timeout_sec", 0.2))
 
-        # --- Motion settings
-        self.max_velocity_scale = float(config.get("max_velocity_scale", 0.15))
-        self.max_acceleration_scale = float(config.get("max_acceleration_scale", 0.15))
-        self.execute_motion = bool(config.get("execute", True))
+        self.declare_parameter("max_velocity_scale", config.get("max_velocity_scale", 0.15))
+        self.declare_parameter("max_acceleration_scale", config.get("max_acceleration_scale", 0.15))
+        self.declare_parameter("execute", config.get("execute", True))
 
-        # --- Debug
-        self.print_joints = bool(config.get("print_joints", True))
+        self.declare_parameter("print_joints", config.get("print_joints", True))
 
+        # --- Read final values from ROS parameters
+        self.step_name = str(self.get_parameter("step_name").value)
+
+        self.target_xyz_mm = [float(x) for x in self.get_parameter("target_xyz_mm").value]
+        self.target_rpy_deg = [float(x) for x in self.get_parameter("target_rpy_deg").value]
+
+        self.reference_frame = str(self.get_parameter("reference_frame").value).strip().lower()
+        self.table_frame_yaw_offset_deg = float(self.get_parameter("table_frame_yaw_offset_deg").value)
+
+        self.group_name = str(self.get_parameter("group_name").value)
+        self.ik_link_name = str(self.get_parameter("ik_link_name").value)
+        self.seed_joints_deg = [float(x) for x in self.get_parameter("seed_joints_deg").value]
+        self.use_seed_joints = bool(self.get_parameter("use_seed_joints").value)
+        self.seed_from_joint_states = bool(self.get_parameter("seed_from_joint_states").value)
+        self.ik_timeout = float(self.get_parameter("ik_timeout_sec").value)
+
+        self.max_velocity_scale = float(self.get_parameter("max_velocity_scale").value)
+        self.max_acceleration_scale = float(self.get_parameter("max_acceleration_scale").value)
+        self.execute_motion = bool(self.get_parameter("execute").value)
+
+        self.print_joints = bool(self.get_parameter("print_joints").value)
         # Basic validation
         if len(self.target_xyz_mm) != 3:
             raise ValueError("Parameter 'target_xyz_mm' must contain exactly 3 values.")

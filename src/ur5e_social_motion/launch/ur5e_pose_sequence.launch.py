@@ -16,7 +16,7 @@ def _load_yaml_file(yaml_file):
 
 
 def _build_step_node(step, index):
-    step_name = step.get("name", f"step_{index}")
+    step_name = step.get("step_name", f"step_{index}")
     target_xyz_mm = step.get("target_xyz_mm", [0.0, 0.0, 0.0])
     target_rpy_deg = step.get("target_rpy_deg", [0.0, 0.0, 0.0])
 
@@ -63,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
         raise FileNotFoundError(f"YAML config file not found: {yaml_file}")
 
     config = _load_yaml_file(yaml_file)
-    steps = config.get("steps", [])
+    steps = config.get("sequence", [])
 
     actions = []
     actions.append(LogInfo(msg=f"Loading motion sequence from: {yaml_file}"))
@@ -76,7 +76,7 @@ def launch_setup(context, *args, **kwargs):
     nodes = [_build_step_node(step, i) for i, step in enumerate(steps)]
 
     for i, step in enumerate(steps):
-        step_name = step.get("name", f"step_{i}")
+        step_name = step.get("step_name", f"step_{i}")
         xyz_mm = step.get("target_xyz_mm", [0.0, 0.0, 0.0])
         rpy_deg = step.get("target_rpy_deg", [0.0, 0.0, 0.0])
 
@@ -94,7 +94,7 @@ def launch_setup(context, *args, **kwargs):
     for i in range(len(nodes) - 1):
         current_node = nodes[i]
         next_node = nodes[i + 1]
-        next_name = steps[i + 1].get("name", f"step_{i+1}")
+        next_name = steps[i + 1].get("step_name", f"step_{i+1}")
 
         actions.append(
             RegisterEventHandler(
