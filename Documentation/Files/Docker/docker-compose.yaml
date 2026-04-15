@@ -10,6 +10,14 @@ services:
     stdin_open: true
     restart: unless-stopped
 
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/dri:/dev/dri
+
+    device_cgroup_rules:
+      - 'c 81:* rmw'
+      - 'c 189:* rmw'
+      
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=5 # ⚠️ numero del grup/robot (1,2,3,4)
@@ -35,8 +43,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # X11 display for RViz/Gazebo
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      # GPU / rendering devices (if needed)
-      - /dev/dri:/dev/dri
       # CycloneDDS configuration (PC side)
       #- ./cyclonedds_pc.xml:/config/cyclonedds_pc.xml:ro
 

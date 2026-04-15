@@ -47,3 +47,6 @@ You are ready to work inside the container and to connect to the robot hardware 
     docker login
     docker push manelpuig/ros2-humble-ub-ur5e:latest
     ```
+- Note that:
+    - Dockerfile0: Base installation without 3D cameras
+    - Dockerfile: Full installation with ORBBEC and Intel Realsense 3D Cameras
