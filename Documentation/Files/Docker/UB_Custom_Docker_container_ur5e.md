@@ -50,3 +50,21 @@ You are ready to work inside the container and to connect to the robot hardware 
 - Note that:
     - Dockerfile0: Base installation without 3D cameras
     - Dockerfile: Full installation with ORBBEC and Intel Realsense 3D Cameras
+
+# 3D cameras
+
+You will have to install Udev rules on Host once:
+- Realsense D435
+````bash
+cd /tmp
+wget https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules
+sudo cp 99-realsense-libusb.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+````
+- Orbbec Gemini2
+````bash
+git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
+cd OrbbecSDK_ROS2
+sudo bash scripts/install_udev_rules.sh
+````
