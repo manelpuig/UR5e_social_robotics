@@ -1,6 +1,6 @@
 services:
   pc-humble:
-    image: manelpuig/ros2-humble-ub-ur5e:latest
+    image: manelpuig/ros2-humble-ub-ur5e:realsense
     container_name: pc_humble_ur5e
 
     privileged: true
@@ -22,8 +22,8 @@ services:
       #- CYCLONEDDS_URI=file:///config/cyclonedds_pc.xml
 
       # X11 / rendering
-      #- DISPLAY=${DISPLAY}
-      - DISPLAY=host.docker.internal:0.0
+      - DISPLAY=${DISPLAY} # Ubuntu
+      #- DISPLAY=host.docker.internal:0.0 # Windows
       - QT_X11_NO_MITSHM=1
       - LIBGL_ALWAYS_SOFTWARE=1
       - MESA_GL_VERSION_OVERRIDE=2.1
