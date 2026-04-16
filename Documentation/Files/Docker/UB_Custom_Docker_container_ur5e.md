@@ -53,18 +53,56 @@ You are ready to work inside the container and to connect to the robot hardware 
 
 # 3D cameras
 
-You will have to install Udev rules on Host once:
-- Realsense D435
-````bash
-cd /tmp
-wget https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules
-sudo cp 99-realsense-libusb.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-````
-- Orbbec Gemini2
+You will have to install Udev rules on Host once and then check that the cameras are properly detected in the container.
+## Realsense D435
+
+- install Udev rules on Host
+    ````bash
+    cd /tmp
+    wget https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules
+    sudo cp 99-realsense-libusb.rules /etc/udev/rules.d/
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+    ````
+- Verify that the camera is detected in the container
+    ````bash
+    lsusb
+    rs-enumerate-devices
+    ````
+- Launch
+    ````bash
+    ros2 launch realsense2_camera rs_launch.py \
+    rgb_camera.color_profile:=640x480x15 \
+    depth_module.depth_profile:=640x360x15 \
+    pointcloud.enable:=false
+  ````
+
+## Orbbec Gemini2
+
+- install Udev rules on Host
 ````bash
 git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
 cd OrbbecSDK_ROS2
 sudo bash scripts/install_udev_rules.sh
 ````
+- Verify that the camera is detected in the container
+    ````bash
+    lsusb
+    ````
+- Launch
+    ````bash
+    ros2 launch orbbec_camera gemini2.launch.py \
+        color_width:=640 \
+        color_height:=480 \
+        color_fps:=15 \
+        color_format:=MJPG \
+        depth_width:=640 \
+        depth_height:=400 \
+        depth_fps:=15 \
+        depth_registration:=false \
+        enable_ir:=false \
+        enable_point_cloud:=false \
+        enable_accel:=false \
+        enable_gyro:=false \
+        connection_delay:=3000
+    ````
