@@ -113,10 +113,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-image-transport \
     ros-humble-camera-info-manager \
     ros-humble-diagnostic-updater \
-    librealsense2-utils \
-    librealsense2-dev \
+    git \
+    cmake \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    libudev-dev \
+    libgtk-3-dev \
+    libglfw3-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    ca-certificates \
+    usbutils \
+    v4l-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# Build librealsense from source with RSUSB backend
+RUN mkdir -p /opt/realsense-src && \
+    cd /opt/realsense-src && \
+    git clone https://github.com/IntelRealSense/librealsense.git && \
+    cd librealsense && \
+    ./scripts/setup_udev_rules.sh && \
+    mkdir build && cd build && \
+    cmake .. \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DFORCE_RSUSB_BACKEND=ON \
+      -DBUILD_EXAMPLES=true \
+      -DBUILD_GRAPHICAL_EXAMPLES=false && \
+    make -j"$(nproc)" && \
+    make install && \
+    ldconfig && \
+    cd / && rm -rf /opt/realsense-src
+    
 # Default ROS 2 environment in bashrc (+ optional /ws overlay if mounted)
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc 
     
