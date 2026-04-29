@@ -64,6 +64,11 @@ You will have to install Udev rules on Host once and then check that the cameras
     sudo udevadm control --reload-rules
     sudo udevadm trigger
     ````
+- Important to add on `.bashrc` an environment variable on `Container`:
+    ````bash
+    export LD_PRELOAD=/usr/local/lib/librealsense2.so
+    ````
+
 - Verify that the camera is detected in the container
     ````bash
     lsusb
