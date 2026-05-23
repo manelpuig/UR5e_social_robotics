@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+
+# behavior_manager.py
+
+import socket
+from typing import Optional
+
+from config import SERVER_IP, SERVER_PORT
+from yaml_loader import load_yaml_file
+
+
+MOTIONS = {
+    "init": "motions/init.yaml",
+    "hand_shake": "motions/hand_shake.yaml",
+    "give_me_5": "motions/give_me_5.yaml",
+}
+
+
+class BehaviorManager:
+
+    def __init__(self):
+        self.server_ip = SERVER_IP
+        self.server_port = SERVER_PORT
+
+    def get_motion_file(self, command: str) -> Optional[str]:
+        return MOTIONS.get(command)
+
+    def execute_command(self, command: str) -> bool:
+        motion_file = self.get_motion_file(command)
+
+        if motion_file is None:
+            print(f"[BEHAVIOR] Unknown command: {command}")
+            return False
+
+        try:
+            load_yaml_file(motion_file)
+        except Exception as e:
+            print(f"[BEHAVIOR] Invalid YAML file: {e}")
+            return False
+
+        return self.send_motion_file(motion_file)
+
+    def send_motion_file(self, motion_file: str) -> bool:
+        try:
+            with open(motion_file, "r", encoding="utf-8") as f:
+                yaml_text = f.read()
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((self.server_ip, self.server_port))
+
+            sock.sendall(yaml_text.encode("utf-8"))
+            sock.shutdown(socket.SHUT_WR)
+
+            response = sock.recv(4096).decode("utf-8")
+            print(f"[SERVER RESPONSE] {response.strip()}")
+
+            sock.close()
+
+            return response.startswith("OK")
+
+        except Exception as e:
+            print(f"[BEHAVIOR] Error sending motion file: {e}")
+            return False

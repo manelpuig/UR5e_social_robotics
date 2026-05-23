@@ -2,17 +2,41 @@
 
 ## Abstract
 
-This document presents the first phase of a modular social robotics architecture for controlling a UR5e industrial robot using Python socket communication and URScript commands. The objective of this phase is to develop a simple, educational, and extensible framework that allows students to interact with the robot through predefined motion sequences described in YAML files. The proposed architecture introduces essential robotics software engineering concepts such as modularity, client-server communication, motion abstraction, and voice interaction, while maintaining a structure that can later be migrated to ROS 2 and MoveIt 2.
+This document presents the first phase of a modular social robotics architecture for controlling a UR5e industrial robot using Python socket communication and URScript commands.
+
+The objective of this phase is to develop a simple, educational, and extensible framework that allows students to interact with the robot through predefined motion sequences described in YAML files.
+
+The proposed architecture introduces essential robotics software engineering concepts such as:
+
+- modularity,
+- client-server communication,
+- motion abstraction,
+- and voice interaction,
+
+while maintaining a structure that can later be migrated to ROS 2 and MoveIt 2.
 
 ---
 
 # 1. Introduction
 
-Industrial robots are commonly programmed using proprietary interfaces or direct scripting languages such as URScript in Universal Robots systems. While this approach is effective for low-level robot control, modern robotics applications increasingly require modular software architectures capable of integrating perception, artificial intelligence, voice interaction, and distributed communication.
+Industrial robots are commonly programmed using proprietary interfaces or direct scripting languages such as URScript in Universal Robots systems.
+
+While this approach is effective for low-level robot control, modern robotics applications increasingly require modular software architectures capable of integrating:
+
+- perception,
+- artificial intelligence,
+- voice interaction,
+- and distributed communication.
 
 The purpose of this first development phase is to create a lightweight educational framework that demonstrates the basic principles of social robotics interaction using a UR5e manipulator controlled through Python TCP sockets.
 
-The proposed system enables a user to verbally request a robot action such as a handshake or a high-five. The software interprets the command, selects the corresponding YAML motion file, and sends the sequence to a robot execution server responsible for generating URScript commands.
+The proposed system enables a user to verbally request a robot action such as:
+
+- a handshake,
+- a high-five,
+- or a home motion.
+
+The software interprets the command, selects the corresponding YAML motion file, and sends the sequence to a robot execution server responsible for generating URScript commands.
 
 The system intentionally avoids the complexity of ROS 2 in this initial phase while preserving a software structure compatible with future migration.
 
@@ -25,10 +49,14 @@ The architecture is based on a client-server model.
 The server maintains the connection with the UR5e robot and executes motion sequences received from external clients.
 
 ```text
-Client  --->  TCP Server  --->  UR5e Robot
+TCP CLIENT  --->  TCP SERVER  --->  UR5e Robot
 ```
 
-The client sends a YAML file containing a sequence of robot poses and motion parameters.
+The client sends a YAML file containing:
+
+- robot poses,
+- motion types,
+- and execution parameters.
 
 The server:
 
@@ -43,45 +71,13 @@ This architecture allows multiple students or external applications to interact 
 
 # 3. Existing Software Structure
 
-The current implementation already includes two main programs:
+The current implementation includes:
 
-## 3.1 Robot Execution Server
-
-The server program performs the following tasks:
-
-- Opens the TCP socket connection with the UR5e robot.
-- Receives YAML motion descriptions from clients.
-- Parses the YAML structure.
-- Executes joint and Cartesian movements.
-- Protects the robot using a mutex lock to avoid simultaneous execution requests.
-
-The current implementation includes support for:
-
-- `movej`
-- `movel`
-- TCP configuration
-- motion blending
-- velocity and acceleration control
-
-The server also ensures that only one client can control the robot at a given time.
-
-## 3.2 Client Program
-
-The client program is intentionally simple.
-
-Its responsibilities are:
-
-- Read a YAML motion file.
-- Send the file content to the server.
-- Wait for the execution response.
-
-Example execution:
-
-```bash
-python3 client.py handshake.yaml
-```
-
-This design allows students to focus on robot behavior generation without modifying the low-level robot communication code.
+- a voice interaction system,
+- a command interpreter,
+- a behavior manager,
+- a robot execution server,
+- and a low-level robot controller.
 
 ---
 
@@ -89,7 +85,7 @@ This design allows students to focus on robot behavior generation without modify
 
 Robot movements are defined using YAML files.
 
-An example motion sequence is shown below:
+Example:
 
 ```yaml
 sequence_name: hand_shake
@@ -115,11 +111,11 @@ steps:
 
 This representation provides several advantages:
 
-- Separation between motion definition and software logic.
-- Improved readability.
-- Easy modification of robot behaviors.
-- Reusability of motion libraries.
-- Simplified migration toward ROS 2.
+- separation between motion definition and software logic,
+- improved readability,
+- easy modification of robot behaviors,
+- reusable motion libraries,
+- simplified migration toward ROS 2.
 
 The YAML structure already resembles the configuration-based approaches commonly used in ROS 2 robotic systems.
 
@@ -127,26 +123,28 @@ The YAML structure already resembles the configuration-based approaches commonly
 
 # 5. Proposed Modular Architecture
 
-To simplify future migration to ROS 2, the Phase 1 software should be divided into independent modules.
-
-The proposed structure is:
+The proposed Python socket architecture is:
 
 ```text
 social_robot_phase1/
 
-├── server.py
-├── client.py
-├── voice_interface.py
-├── command_interpreter.py
-├── motion_library.py
-├── yaml_loader.py
-├── robot_controller.py
+├── main.py
 ├── config.py
-
-├── motions/
-│   ├── init.yaml
-│   ├── hand_shake.yaml
-│   └── give_me_5.yaml
+│
+├── voice.py
+├── command_interpreter.py
+├── behavior_manager_client.py
+│
+├── ur5e_motion_server.py
+├── ur5e_robot_controller.py
+│
+├── utils/
+│   └── yaml_loader.py
+│
+└── motions/
+    ├── init.yaml
+    ├── hand_shake.yaml
+    └── give_me_5.yaml
 ```
 
 This structure separates the system into functional components with clearly defined responsibilities.
@@ -155,47 +153,43 @@ This structure separates the system into functional components with clearly defi
 
 # 6. Module Description
 
-## 6.1 `server.py`
+## 6.1 `main.py`
 
-This module implements the TCP robot execution server.
+This file acts as the main application orchestrator.
 
-Responsibilities:
+It connects:
 
-- Accept external TCP connections.
-- Receive YAML sequences.
-- Validate execution access.
-- Execute robot motions sequentially.
-- Send execution results to the client.
+```text
+voice
+    ↓
+command interpreter
+    ↓
+behavior manager client
+```
 
-This module represents the central coordination element of the architecture.
+Example workflow:
 
----
-
-## 6.2 `client.py`
-
-The client sends motion requests to the server.
-
-Responsibilities:
-
-- Open the YAML file.
-- Send the YAML content.
-- Wait for the server response.
-
-The client abstracts all low-level robot communication details from the user.
+```text
+voice.py
+    ↓
+command_interpreter.py
+    ↓
+behavior_manager_client.py
+```
 
 ---
 
-## 6.3 `voice_interface.py`
+## 6.2 `voice.py`
 
 This module manages human-robot voice interaction.
 
-Responsibilities:
+### Responsibilities
 
 - Capture microphone audio.
 - Convert speech to text.
 - Generate spoken robot responses.
 
-Example commands:
+### Example Commands
 
 ```text
 robot go home
@@ -207,7 +201,7 @@ This module introduces the first level of social interaction with the robot.
 
 ---
 
-## 6.4 `command_interpreter.py`
+## 6.3 `command_interpreter.py`
 
 This module converts natural language into internal robot commands.
 
@@ -219,7 +213,7 @@ Example:
 "hand_shake"
 ```
 
-The recommended implementation strategy is:
+### Recommended Strategy
 
 1. Local keyword-based parser.
 2. GPT fallback interpreter if no match is found.
@@ -229,15 +223,34 @@ This hybrid approach provides:
 - fast execution,
 - reduced API dependency,
 - better robustness,
-- and simpler debugging.
+- simpler debugging.
 
 ---
 
-## 6.5 `motion_library.py`
+## 6.4 `behavior_manager_client.py`
 
-This module maps high-level commands to YAML motion files.
+This module acts as the TCP client of the architecture.
+
+Its responsibilities are:
+
+- map commands to YAML files,
+- load robot motion sequences,
+- validate YAML files,
+- send execution requests to the server.
 
 Example:
+
+```text
+hand_shake
+        ↓
+motions/hand_shake.yaml
+        ↓
+TCP request
+        ↓
+ur5e_motion_server.py
+```
+
+Example motion library:
 
 ```python
 MOTIONS = {
@@ -250,21 +263,42 @@ MOTIONS = {
 }
 ```
 
-This abstraction layer separates:
+This module separates:
 
 ```text
-user intention  →  robot motion
+robot intention
 ```
 
-The same conceptual architecture will later be reused in ROS 2 behavior management nodes.
+from:
+
+```text
+robot motion implementation
+```
 
 ---
 
-## 6.6 `yaml_loader.py`
+## 6.5 `ur5e_motion_server.py`
+
+This module implements the TCP robot execution server.
+
+### Responsibilities
+
+- Accept TCP connections.
+- Receive YAML sequences.
+- Validate execution access.
+- Protect the robot using a mutex lock.
+- Execute robot motions sequentially.
+- Send execution results to the client.
+
+This module represents the central coordination element of the architecture.
+
+---
+
+## 6.6 `utils/yaml_loader.py`
 
 This module validates YAML motion files before execution.
 
-Validation includes:
+### Validation Includes
 
 - syntax verification,
 - required fields,
@@ -276,17 +310,19 @@ This module improves safety and prevents malformed motion sequences.
 
 ---
 
-## 6.7 `robot_controller.py`
+## 6.7 `ur5e_robot_controller.py`
 
 This module handles low-level robot communication.
 
-Responsibilities:
+### Responsibilities
 
-- Open TCP socket connection.
+- Open TCP socket connection with the UR5e.
 - Send URScript commands.
 - Convert units and coordinates.
 - Execute `movej`.
 - Execute `movel`.
+- Configure TCP parameters.
+- Interface with RoboDK.
 
 The module must remain independent from:
 
@@ -310,7 +346,7 @@ SERVER_IP = "0.0.0.0"
 
 SERVER_PORT = 5000
 
-ROBOT_IP = "192.168.1.4"
+ROBOT_IP = "192.168.0.20"
 
 ROBOT_PORT = 30002
 
@@ -328,24 +364,24 @@ Centralized configuration simplifies deployment and maintenance.
 The complete system workflow is illustrated below:
 
 ```text
-User Speech
+main.py
       ↓
-voice_interface.py
+voice.py
       ↓
 command_interpreter.py
       ↓
-motion_library.py
+behavior_manager_client.py
+      ↓ TCP CLIENT
+ur5e_motion_server.py
       ↓
-client.py
-      ↓
-server.py
-      ↓
-robot_controller.py
+ur5e_robot_controller.py
       ↓
 UR5e Robot
 ```
 
-Example interaction:
+---
+
+# 8. Example Interaction
 
 ```text
 User:
@@ -354,13 +390,13 @@ User:
 Interpreter:
 hand_shake
 
-Motion library:
+Behavior manager:
 motions/hand_shake.yaml
 
-Client:
+TCP client:
 sends YAML sequence
 
-Server:
+Motion server:
 executes sequence
 
 Robot:
@@ -369,7 +405,7 @@ performs handshake motion
 
 ---
 
-# 8. Educational Advantages
+# 9. Educational Advantages
 
 The proposed architecture introduces students to several important robotics concepts:
 
@@ -385,13 +421,13 @@ The simplicity of the architecture makes it suitable for teaching robotics softw
 
 ---
 
-# 9. Limitations of the Proposed Approach
+# 10. Limitations of the Proposed Approach
 
 Although effective for educational purposes, this architecture presents several limitations.
 
 The robot is controlled through direct URScript socket communication without a complete robotics middleware.
 
-Main limitations include:
+## Main Limitations
 
 - absence of MoveIt 2 motion planning,
 - no collision checking,
@@ -408,45 +444,45 @@ Therefore, this phase should be considered an introductory software architecture
 
 ---
 
-# 10. Migration Toward ROS 2
+# 11. Migration Toward ROS 2
 
 One of the main objectives of this design is preserving compatibility with future ROS 2 migration.
 
 The proposed mapping is:
 
-| Phase 1 Module | ROS 2 Equivalent |
+| Python Phase 1 | ROS 2 Equivalent |
 |---|---|
-| `voice_interface.py` | voice node |
-| `command_interpreter.py` | NLP interpreter node |
-| `motion_library.py` | behavior manager node |
-| `yaml_loader.py` | configuration utility |
-| `robot_controller.py` | MoveIt 2 execution node |
-| `server.py` | ROS 2 action/service server |
-| `client.py` | ROS 2 action/service client |
+| `main.py` | launch file |
+| `voice.py` | `voice_node.py` |
+| `command_interpreter.py` | `command_interpreter_node.py` |
+| `behavior_manager_client.py` | `behavior_manager_client_node.py` |
+| `utils/yaml_loader.py` | `utils/yaml_loader.py` |
+| `ur5e_motion_server.py` | `ur5e_sequence_server.py` |
+| `ur5e_robot_controller.py` | `ur5e_robot_controller/` |
 
-The future ROS 2 architecture may become:
+The future ROS 2 architecture becomes:
 
 ```text
-voice_node
-      ↓
-command_interpreter_node
-      ↓
-behavior_manager_node
-      ↓
-motion_execution_node
-      ↓
-MoveIt 2
-      ↓
-UR ROS 2 Driver
-      ↓
-UR5e Robot
+voice_node.py
+    ↓
+command_interpreter_node.py
+    ↓
+behavior_manager_client_node.py
+    ↓ ROS2 SERVICE CLIENT
+ur5e_sequence_server.py
+    ↓
+ur5e_robot_controller
+    ↓
+MoveIt2 / UR Driver
+    ↓
+UR5e
 ```
 
 This migration path allows students to progressively evolve from simple Python robotics applications toward professional ROS 2 robotic systems.
 
 ---
 
-# 11. Conclusion
+# 12. Conclusion
 
 This document presented the first phase of a modular social robotics framework for controlling a UR5e robot using Python sockets and URScript communication.
 
@@ -455,8 +491,16 @@ The proposed architecture prioritizes:
 - simplicity,
 - modularity,
 - educational clarity,
-- and future scalability.
+- future scalability,
+- and direct compatibility with ROS 2 concepts.
 
-The system introduces voice interaction, YAML-based motion abstraction, and modular software organization while remaining accessible to students with limited robotics software experience.
+The system introduces:
 
-Although the architecture lacks advanced robotics capabilities such as collision-aware planning and distributed middleware integration, it provides an excellent foundation for understanding robot software organization and preparing future migration toward ROS 2 and MoveIt 2.
+- voice interaction,
+- YAML-based motion abstraction,
+- client-server communication,
+- and modular software organization
+
+while remaining accessible to students with limited robotics software experience.
+
+Although the architecture lacks advanced robotics capabilities such as collision-aware planning and distributed middleware integration, it provides an excellent foundation for understanding robot software organization and preparing future migration toward ROS 2 and MoveIt 2.nced robotics capabilities such as collision-aware planning and distributed middleware integration, it provides an excellent foundation for understanding robot software organization and preparing future migration toward ROS 2 and MoveIt 2.

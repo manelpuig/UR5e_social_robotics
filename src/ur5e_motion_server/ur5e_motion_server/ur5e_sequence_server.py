@@ -71,8 +71,8 @@ class UR5eSequenceServer(Node):
             cmd = [
                 "ros2",
                 "run",
-                "ur5e_kinematics_pymoveit2",
-                "ur5e_pose_sequence_simple_exec",
+                "ur5e_robot_controller",
+                "ur5e_pose_sequence_exe",
                 "--ros-args",
                 "-p",
                 f"sequence_file:={sequence_file}"

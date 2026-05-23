@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = 'ur5e_kinematics_pymoveit2'
+package_name = 'ur5e_robot_controller'
 
 setup(
     name=package_name,
@@ -23,9 +23,9 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
-            'ur5e_forward_kinematics_exe = ur5e_kinematics_pymoveit2.ur5e_forward_kinematics:main',
-            'ur5e_move_to_pose_table_exe = ur5e_kinematics_pymoveit2.ur5e_move_to_pose_table:main',
-            "ur5e_pose_sequence_simple_exe = ur5e_kinematics_pymoveit2.ur5e_pose_sequence_simple:main",
+            'ur5e_forward_kinematics_exe = ur5e_robot_controller.ur5e_forward_kinematics:main',
+            'ur5e_move_to_pose_table_exe = ur5e_robot_controller.ur5e_move_to_pose_table:main',
+            "ur5e_pose_sequence_exe = ur5e_robot_controller.ur5e_pose_sequence:main",
         ],
     },
 )

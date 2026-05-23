@@ -36,8 +36,8 @@ def generate_launch_description():
     )
 
     sequence_node = Node(
-        package="ur5e_kinematics_pymoveit2",
-        executable="ur5e_pose_sequence_simple_exe",
+        package="ur5e_robot_controller",
+        executable="ur5e_pose_sequence_exe",
         name="ur5e_pose_sequence",
         output="screen",
         parameters=[{

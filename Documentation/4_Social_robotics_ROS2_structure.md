@@ -27,17 +27,19 @@ while replacing custom TCP socket communication with standard ROS 2 communicatio
 The original Python socket architecture was:
 
 ```text
+main.py
+        ↓
 voice_interface.py
         ↓
 command_interpreter.py
         ↓
-motion_library.py
+behavior_manager_client.py
+        ↓ TCP CLIENT
+ur5e_motion_server.py
         ↓
-client.py
+ur5e_robot_controller.py
         ↓
-server.py
-        ↓
-robot_controller.py
+UR5e Robot
 ```
 
 The ROS 2 equivalent architecture becomes:
@@ -47,11 +49,11 @@ voice_node.py
         ↓
 command_interpreter_node.py
         ↓
-behavior_manager_node.py
-        ↓
+behavior_manager_client_node.py
+        ↓ ROS2 SERVICE CLIENT
 ur5e_sequence_server.py
         ↓
-ur5e_pose_sequence_simple_exec
+ur5e_robot_controller
         ↓
 MoveIt 2 / UR Driver
         ↓
@@ -76,54 +78,54 @@ Only the communication mechanism changes:
 The proposed ROS 2 architecture is:
 
 ```text
-+------------------------+
-| voice_node             |
-| Speech-to-text         |
-+------------------------+
-            |
-            | /social_robot/spoken_text
-            v
-+------------------------+
-| command_interpreter    |
-| Natural language       |
-| to robot command       |
-+------------------------+
-            |
-            | /social_robot/command
-            v
-+------------------------+
-| behavior_manager_node  |
-| Maps command to        |
-| YAML sequence          |
-+------------------------+
-            |
-            | service client
-            | /ur5e/run_sequence
-            v
-+------------------------+
-| ur5e_sequence_server   |
-| Executes YAML          |
-| sequence               |
-+------------------------+
-            |
-            v
-+------------------------+
-| ur5e_pose_sequence     |
-| MoveIt 2 execution     |
-+------------------------+
-            |
-            v
-        UR5e Robot
++----------------------------------+
+| voice_node.py                    |
+| Speech-to-text                   |
++----------------------------------+
+                 |
+                 | /social_robot/spoken_text
+                 v
++----------------------------------+
+| command_interpreter_node.py      |
+| Natural language                 |
+| to robot command                 |
++----------------------------------+
+                 |
+                 | /social_robot/command
+                 v
++----------------------------------+
+| behavior_manager_client_node.py  |
+| Maps command to                  |
+| YAML sequence                    |
++----------------------------------+
+                 |
+                 | ROS2 service client
+                 | /ur5e/run_sequence
+                 v
++----------------------------------+
+| ur5e_sequence_server.py          |
+| Executes YAML                    |
+| sequence                         |
++----------------------------------+
+                 |
+                 v
++----------------------------------+
+| ur5e_robot_controller            |
+| MoveIt2 / pymoveit2              |
++----------------------------------+
+                 |
+                 v
+              UR5e
 ```
 
 ---
 
-# 4. Why Is `behavior_manager_node` Needed?
+# 4. Why Is `behavior_manager_client_node.py` Needed?
 
 At first glance, it may seem unnecessary because:
 
 ```text
-command_interpreter_node
+command_interpreter_node.py
 ```
 
 already publishes the command:
@@ -138,7 +140,7 @@ For example:
 hand_shake
 ```
 
-However, the `behavior_manager_node` has a very important responsibility.
+However, the `behavior_manager_client_node.py` has a very important responsibility.
 
 It separates:
 
@@ -156,7 +158,7 @@ robot motion implementation
 
 # 5. Responsibility Separation
 
-## 5.1 `command_interpreter_node`
+## 5.1 `command_interpreter_node.py`
 
 This node only understands language.
 
@@ -183,7 +185,7 @@ speech → command
 
 ---
 
-## 5.2 `behavior_manager_node`
+## 5.2 `behavior_manager_client_node.py`
 
 This node decides:
 
@@ -227,29 +229,23 @@ RunSequence.srv
 
 ---
 
-# 6. Is `behavior_manager_node` Actually the Motion Client?
+# 6. Is `behavior_manager_client_node.py` Actually the Motion Client?
 
 Yes.
 
 Conceptually:
 
 ```text
-behavior_manager_node
+behavior_manager_client_node.py
 ```
 
 is the ROS 2 equivalent of:
 
 ```text
-ur5e_motion_client
+behavior_manager_client.py
 ```
 
-or the old:
-
-```text
-client.py
-```
-
-from the socket architecture.
+from the Python socket architecture.
 
 It acts as:
 
@@ -257,34 +253,61 @@ It acts as:
 - motion client,
 - and behavior coordinator.
 
-Therefore, you could rename it as:
+The node receives high-level robot commands and transforms them into robot execution requests.
 
-```text
-ur5e_motion_client_node.py
-```
+This architecture allows future integration of:
 
-if you prefer a more direct name.
-
-However:
-
-```text
-behavior_manager_node
-```
-
-is usually a better robotics architecture name because later it can manage:
-
-- gestures,
-- voice responses,
+- gesture recognition,
+- voice interaction,
 - face tracking,
 - emotional states,
 - navigation behaviors,
-- multimodal interactions.
+- multimodal interaction systems.
 
 ---
 
-# 7. Recommended Simple Node Responsibilities
+# 7. Recommended ROS 2 Package Structure
 
-## 7.1 `voice_node.py`
+The recommended ROS 2 workspace organization is:
+
+```text
+src/
+│
+├── pymoveit2/
+│
+├── ur5e_interfaces/
+│   └── srv/
+│       └── RunSequence.srv
+│
+├── ur5e_robot_controller/
+│   ├── ur5e_pose_sequence_exec.py
+│   ├── ur5e_move_to_pose_exec.py
+│   ├── ur5e_move_to_joints_exec.py
+│   │
+│   └── utils/
+│       └── yaml_loader.py
+│
+├── ur5e_motion_server/
+│   └── ur5e_sequence_server.py
+│
+├── social_robot_behaviors/
+│   └── behavior_manager_client_node.py
+│
+├── social_robot_voice/
+│   └── voice_node.py
+│
+├── social_robot_interpreter/
+│   └── command_interpreter_node.py
+│
+└── social_robot_gesture/
+    └── gesture_interpreter_node.py
+```
+
+---
+
+# 8. Recommended Simple Node Responsibilities
+
+## 8.1 `voice_node.py`
 
 ### Responsibilities
 
@@ -306,7 +329,7 @@ std_msgs/String
 
 ---
 
-## 7.2 `command_interpreter_node.py`
+## 8.2 `command_interpreter_node.py`
 
 ### Responsibilities
 
@@ -336,7 +359,7 @@ std_msgs/String
 
 ---
 
-## 7.3 `behavior_manager_node.py`
+## 8.3 `behavior_manager_client_node.py`
 
 ### Responsibilities
 
@@ -366,7 +389,7 @@ hand_shake.yaml
 
 ---
 
-## 7.4 `ur5e_sequence_server.py`
+## 8.4 `ur5e_sequence_server.py`
 
 ### Responsibilities
 
@@ -392,20 +415,82 @@ string message
 
 ---
 
-## 7.5 `ur5e_pose_sequence_simple_exec`
+## 8.5 `ur5e_robot_controller`
 
 ### Responsibilities
 
 - Load YAML sequence.
 - Compute robot kinematics.
-- Execute poses using MoveIt 2.
-- Send trajectories to the UR driver.
+- Execute robot trajectories using MoveIt 2.
+- Send trajectories to the UR ROS 2 driver.
 
-This is the low-level motion execution node.
+This package represents the low-level robot controller layer.
+
+It is the ROS 2 equivalent of:
+
+```text
+ur5e_robot_controller.py
+```
+
+from the Python socket architecture.
 
 ---
 
-# 8. Why This Architecture Is Good
+# 9. Future Gesture-Based Interaction
+
+The package:
+
+```text
+social_robot_gesture
+```
+
+is reserved for future gesture-based interaction using:
+
+```text
+YOLO pose estimation
+```
+
+for example:
+
+```text
+yolo11n-pose.pt
+```
+
+This package will:
+
+- detect human gestures,
+- classify social robot interactions,
+- convert gestures into robot commands.
+
+Example:
+
+```text
+Detected gesture:
+high-five
+        ↓
+Published command:
+give_me_5
+```
+
+The node will publish the same command topic:
+
+```text
+/social_robot/command
+```
+
+used by the voice interaction pipeline.
+
+This allows:
+
+- voice interaction,
+- gesture interaction,
+- and future multimodal interaction systems
+
+to coexist using the same architecture.
+
+---
+
+# 10. Why This Architecture Is Good
 
 This architecture provides:
 
@@ -433,22 +518,24 @@ can all be integrated while preserving the same architecture.
 
 ---
 
-# 9. Final Simplified Concept
+# 11. Final Simplified Concept
 
 The complete system can be summarized as:
 
 ```text
-voice_node
+voice_node.py
     ↓
-command_interpreter_node
+command_interpreter_node.py
     ↓
-behavior_manager_node
+behavior_manager_client_node.py
+    ↓ ROS2 SERVICE CLIENT
+ur5e_sequence_server.py
     ↓
-ur5e_sequence_server
+ur5e_robot_controller
     ↓
-MoveIt 2 executor
+MoveIt2 / UR Driver
     ↓
-UR5e robot
+UR5e
 ```
 
-This architecture represents a clean and educational transition from simple Python socket programming toward professional ROS 2 robotics software engineering.
+This architecture represents a clean and educational transition from simple Python socket programming toward professional ROS 2 robotics software engineering.educational transition from simple Python socket programming toward professional ROS 2 robotics software engineering.
