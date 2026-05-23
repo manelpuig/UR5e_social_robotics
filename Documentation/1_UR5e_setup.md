@@ -1,5 +1,14 @@
 # UR5e setup environment
 
+This document summarizes the necessary steps to work with UR based projecs:
+- in virtual environment
+- in a real UR5e robot arm
+
+References:
+- [UR5e Driver](https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/tree/humble)
+
+## UR5e Robot setup in a virtual environment
+
 In simulation environment you have to install the complete UR metapackage:
 ````bash
 sudo apt install ros-humble-ur
@@ -17,36 +26,36 @@ git commit -m "Message"
 git push
 ````
 
-# Connecting and Controlling a Real UR5e Robot with ROS 2 Humble + MoveIt
+## Real UR5e Robot setup environment
 
-This document summarizes the necessary steps to connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS 2 Humble**, install the required URCaps, configure networking, and control the robot using **MoveIt**.
+To connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS 2 Humble** we have to:
+- install the required URCaps, 
+- configure networking, and 
+- control the robot using **ur_robot driver and MoveIt**.
 
-References:
-- [UR5e Driver](https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/tree/humble)
+### 1. Network Setup
 
-## 1. Network Setup
+Ensure the PC and UR5e are connected with a proper eternet cable.
 
-Ensure the PC and UR5e are on the same LAN.
+Configure proper fixed IP adress:
+- PC IP: `192.168.0.10`
+- UR5e IP: `192.168.0.20`
 
-Example:
-- PC IP: `192.168.1.45`
-- UR5e IP: `192.168.1.4`
-
-Verify connection:
+Verify connection in a pc-cmd:
 ```bash
-ping 192.168.1.4
+ping 192.168.0.10
 ```
 
-## 2. UR5e robot Configuration
+### 2. UR5e robot Configuration
 
 There are requirements on Polyscope software version and URcap external control
 
-### 2.1. Polyscope software
+#### 2.1. Polyscope software
 To properly work on ros2 Humble, the Polyscope version has to be higher than 5.9.5. We have installed the 5.25.1 version.
 
 The file we have to download is: https://www.universal-robots.com/download/software-ur-series/update/latest-polyscope-software-update-sw-5251-ur-series-e-series/
 
-### 2.2. URCap externalcontrol installation
+#### 2.2. URCap externalcontrol installation
 Download:
 ```
 externalcontrol-1.0.urcap
@@ -70,50 +79,57 @@ The configuration is based on the PC IP the robot has to connect to.
     ```
 
 - Set:
-    - **Control PC IP:** (e.g., `192.168.1.55`)
+    - **Control PC IP:** (e.g., `192.168.0.10`)
     - **Port:** `50002`
 
-## 2.3. ROS2 External Control Program
-We first create a new program `ROS2_External_Control_PC1.urp` including only the `External Control` instruction configured before
+#### 2.3. ROS2 External Control Program
+We first create a new program `ROS2_External_Control_PC_professor.urp` including only the `External Control` instruction configured before
 
 Suggested Lab procedure:
-- Create one Installation file per PC_IP (ROS2_PC1.installation, ROS2_PC2.installation, etc.)
-- Create one URP file per PC on lab (ROS2_External_Control_PC1.urp, ROS2_External_Control_PC1.urp, etc.)
-- Save these 2 files in a speciffic folder (ROS2_PC1. ROS2_PC2, etc)
-- To connect UR5e to speciffic PC, open `ROS2_External_Control_PC1.urp` on teach pendant. The installation file will be by default the one used when you have saved the urp file.
+- Create one Installation file (ROS2_PC_professor.installation)
+- Include all the settings: gripper payload, gripper TCP, safety planes, etc.
 
-## 3. PC Configuration
+### 3. PC Configuration
 
 The PC is an Ubuntu22 with ROS2 Humble and we have to install different modulus:
 ````bash
 sudo apt install ros-humble-ur-robot-driver
 sudo apt install ros-humble-ros2controlcli
 sudo apt install ros-humble-ur-calibration
-````
-
-Also is needed other packages for proper Kinematics operation:
-````bash
 apt install ros-humble-moveit
 ````
 
-## 4. Quick start
+The recommended installation is:
+- Install needed packages:
+    ````bash
+    sudo apt update
+    sudo apt install ros-humble-ur ros-humble-ros2controlcli
+    ````
+- Extract the callibration and obtain a URDF correct model from your real UR5e
+    ````bash
+    ros2 launch ur_calibration calibration_correction.launch.py \
+        robot_ip:=192.168.0.20 \
+        target_filename:=${HOME}/ur5e_calibration.yaml
+    ````
+
+### 4. Quick start
 
 To properly start working on the UR5e with ROS2 Humble we have to:
 - First on PC:
     - Source ROS:
         ```bash
         source /opt/ros/humble/setup.bash
-        source ~/ROS2_UR_manipulation_ws/install/setup.bash
+        source ~/UR5e_social_robotics/install/setup.bash
         ```
     - Run the UR driver:
         ```bash
-        ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.1.4 launch_rviz:=false
+        ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.0.20 launch_rviz:=false
         ```
 - Now on `Teach Pendant`:
-    - Load program: **ROS2_External_Control_PCx.urp**
+    - Load program: **ROS2_External_Control_PC_professor.urp**
     - Press **Play**  
 
-## 5. Verify Joint States and run a first movement
+### 5. Verify Joint States and run a first movement
 
 - Open a new terminal and type:
     ```bash
