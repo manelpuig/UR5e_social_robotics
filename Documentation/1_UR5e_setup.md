@@ -7,7 +7,7 @@ This document summarizes the necessary steps to work with UR based projecs:
 References:
 - [UR5e Driver](https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/tree/humble)
 
-## UR5e Robot setup in a virtual environment
+## 1. UR5e Robot setup in a virtual environment
 
 In simulation environment you have to install the complete UR metapackage:
 ````bash
@@ -25,15 +25,20 @@ git add .
 git commit -m "Message"
 git push
 ````
+First time you will have to add:
+````bash
+git config --global user.email "manel.puig@ub.edu"
+git config --global user.name "manelpuig"
+````
 
-## Real UR5e Robot setup environment
+## 2. Real UR5e Robot setup environment
 
 To connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS 2 Humble** we have to:
 - install the required URCaps, 
 - configure networking, and 
 - control the robot using **ur_robot driver and MoveIt**.
 
-### 1. Network Setup
+### 2.1. Network Setup
 
 Ensure the PC and UR5e are connected with a proper eternet cable.
 
@@ -46,16 +51,16 @@ Verify connection in a pc-cmd:
 ping 192.168.0.10
 ```
 
-### 2. UR5e robot Configuration
+### 2.2. UR5e robot Configuration
 
 There are requirements on Polyscope software version and URcap external control
 
-#### 2.1. Polyscope software
+#### 2.2.1. Polyscope software
 To properly work on ros2 Humble, the Polyscope version has to be higher than 5.9.5. We have installed the 5.25.1 version.
 
 The file we have to download is: https://www.universal-robots.com/download/software-ur-series/update/latest-polyscope-software-update-sw-5251-ur-series-e-series/
 
-#### 2.2. URCap externalcontrol installation
+#### 2.2.2. URCap externalcontrol installation
 Download:
 ```
 externalcontrol-1.0.urcap
@@ -82,14 +87,14 @@ The configuration is based on the PC IP the robot has to connect to.
     - **Control PC IP:** (e.g., `192.168.0.10`)
     - **Port:** `50002`
 
-#### 2.3. ROS2 External Control Program
+#### 2.2.3. ROS2 External Control Program
 We first create a new program `ROS2_External_Control_PC_professor.urp` including only the `External Control` instruction configured before
 
 Suggested Lab procedure:
 - Create one Installation file (ROS2_PC_professor.installation)
 - Include all the settings: gripper payload, gripper TCP, safety planes, etc.
 
-### 3. PC Configuration
+### 2.3. PC Configuration
 
 The PC is an Ubuntu22 with ROS2 Humble and we have to install different modulus:
 ````bash
@@ -112,7 +117,7 @@ The recommended installation is:
         target_filename:=${HOME}/ur5e_calibration.yaml
     ````
 
-### 4. Quick start
+### 2.4. Quick start
 
 To properly start working on the UR5e with ROS2 Humble we have to:
 - First on PC:
@@ -129,7 +134,7 @@ To properly start working on the UR5e with ROS2 Humble we have to:
     - Load program: **ROS2_External_Control_PC_professor.urp**
     - Press **Play**  
 
-### 5. Verify Joint States and run a first movement
+### 2.5. Verify Joint States and run a first movement
 
 - Open a new terminal and type:
     ```bash

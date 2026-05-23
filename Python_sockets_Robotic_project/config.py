@@ -1,0 +1,17 @@
+# config.py
+
+SERVER_IP = "127.0.0.1"
+SERVER_PORT = 5000
+
+ROBOT_IP = "192.168.0.20"
+ROBOT_PORT = 30002
+
+RDK_FILE = "src/roboDK/Social_UR5e.rdk"
+
+MOTIONS_DIR = "motions"
+
+ACTIVATION_WORD = "robot"
+LANGUAGE = "en-US"
+TTS_RATE = 170
+
+MAX_YAML_SIZE_BYTES = 20000

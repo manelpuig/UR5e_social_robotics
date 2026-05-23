@@ -37,8 +37,6 @@ This approach allows students to:
 * Understand robot networking
 * Learn industrial robot communication basics
 * Send real robot movements with simple Python scripts
-* Understand coordinate systems and motion commands
-* Learn how TCP/IP robot communication works internally
 
 Example educational concepts:
 
@@ -51,15 +49,22 @@ Example educational concepts:
 
 Although this approach is simple and very educational, students quickly discover several limitations:
 
-* Limited scalability
+* Limited modularity and scalability
 * Difficult synchronization between modules
 * No standardized communication framework
-* Limited modularity
 * Difficult integration of sensors and AI modules
-* Poor multi-node coordination
-* No distributed robotics infrastructure
+* Abrupt robot motions
+* Non-optimized trajectories
 
-These limitations naturally motivate the transition toward ROS 2.
+Although TCP sockets are still used internally in industrial communication systems, professional robotics applications are usually implemented using:
+
+* Robotics middleware
+* Distributed node architectures
+* Motion planning frameworks
+* Standardized robot interfaces
+* Real-time controllers
+* Modular software ecosystems
+These limitations naturally motivate the transition toward ROS 2, MoveIt 2, and modern robotics software engineering principles..
 
 ---
 
@@ -89,11 +94,7 @@ Students learn:
 * AI integration
 * Modular robotics software architectures
 
-The key educational idea is that:
-
-> ROS 2 does not replace the client–server philosophy.
->
-> Instead, ROS 2 provides a more scalable, modular, robust, and professional implementation of the same architecture.
+ROS 2 provides a more scalable, modular, robust, and professional implementation of the same architecture.
 
 ---
 
@@ -131,10 +132,9 @@ For both robot control approaches — Python sockets with URScript and ROS 2 wit
 Recommended systems:
 
 * Ubuntu 22.04 LTS
-* Ubuntu 24.04 LTS
 * Linux low-latency kernel
 
-Example installation:
+Installation:
 
 ```bash
 sudo apt install linux-lowlatency
@@ -236,117 +236,6 @@ These problems can produce:
 
 The low-latency kernel significantly improves scheduling responsiveness and reduces communication jitter.
 
----
-
-## Importance for Python Socket Control
-
-Even in the educational Python socket + URScript approach, low latency is still important.
-
-Although URScript socket communication is less demanding than ROS 2 real-time control, the system still relies on:
-
-* TCP/IP communication timing
-* Fast command delivery
-* Stable robot feedback
-* Sequential motion execution
-* Reliable network communication
-
-Using a low-latency kernel improves:
-
-* Motion responsiveness
-* Stability of socket communication
-* Timing consistency
-* Multi-client server responsiveness
-
-This is especially important when:
-
-* Multiple students send commands simultaneously
-* The server validates trajectories
-* External sensors are integrated
-* Real-time supervision is implemented
-
----
-
-## Importance for ROS 2 and MoveIt 2
-
-Low latency becomes even more important when using:
-
-* ROS 2
-* MoveIt 2
-* ros2_control
-* Universal Robots ROS 2 Driver
-* Trajectory controllers
-* Real-time joint interpolation
-
-The UR ROS 2 driver internally uses:
-
-* RTDE communication
-* ros2_control
-* High-frequency control loops
-* Trajectory streaming
-
-The driver itself typically recommends:
-
-* A low-latency kernel
-* FIFO scheduling
-* Reduced system jitter
-
-Without these optimizations, users may observe warnings such as:
-
-```text
-Your system/user seems not to be setup for FIFO scheduling.
-We recommend using a lowlatency kernel.
-```
-
-These warnings are common in industrial ROS 2 robot systems.
-
----
-
-## Educational Value
-
-Using a low-latency kernel also provides educational value because students learn:
-
-* The importance of real-time constraints in robotics
-* Differences between standard computing and robotics computing
-* Industrial robot communication requirements
-* Deterministic vs non-deterministic systems
-* Real-time software engineering concepts
-
-This helps bridge the gap between:
-
-* Academic robotics exercises
-* Professional industrial robotics systems
-
----
-
-# Safety Architecture
-
-Safety is a fundamental requirement in a multi-student robotics classroom.
-
-The proposed architecture prevents students from directly accessing the robot controller.
-
-Only the Professor PC communicates with the UR5e robot.
-
-This provides several advantages:
-
-* Centralized supervision
-* Controlled motion execution
-* Validation of robot commands
-* Prevention of conflicting trajectories
-* Prevention of simultaneous student access
-* Logging and monitoring of robot activity
-* Easier emergency stop management
-* Controlled network access
-
-The architecture also allows implementing:
-
-* User authentication
-* Student identification
-* Motion permission filters
-* Workspace limitations
-* Motion queue systems
-* Collision-safe predefined motions
-
----
 
 # Classroom Network Architecture
 
@@ -395,18 +284,12 @@ Students learn:
 * Python sockets
 * URScript
 * Basic motion commands
-* Robot communication protocols
-
-## Phase 2 — Modular Robotics Software
-
-Students learn:
-
 * Modular Python applications
 * YAML-based robot sequences
 * Motion servers
 * Distributed client applications
 
-## Phase 3 — ROS 2 Robotics
+## Phase 2 — ROS 2 Robotics
 
 Students learn:
 
@@ -418,7 +301,7 @@ Students learn:
 * Navigation and perception
 * AI integration
 
-## Phase 4 — Social and Intelligent Robotics
+## Phase 3 — Social and Intelligent Robotics
 
 Students integrate:
 
@@ -429,43 +312,6 @@ Students integrate:
 * AI-based behaviors
 * Autonomous social robot applications
 
----
-
-# Advantages of the Proposed Architecture
-
-## Educational Advantages
-
-* Progressive learning curve
-* Clear transition from low-level to high-level robotics
-* Real industrial robot experience
-* Unified conceptual architecture
-* Strong software engineering foundation
-* Scalable robotics framework
-
-## Technical Advantages
-
-* Centralized safety
-* Easier maintenance
-* Modular architecture
-* Multi-user support
-* Scalability
-* ROS 2 compatibility
-* AI integration capability
-* Real/simulated robot compatibility
-
-## Research Advantages
-
-The same architecture can later evolve toward:
-
-* Social robotics
-* Human–robot interaction
-* AI-based robot behaviors
-* Multi-robot systems
-* Cloud robotics
-* Remote robot laboratories
-* Autonomous industrial robotics
-
----
 
 # Conclusion
 
@@ -474,8 +320,6 @@ This educational architecture provides a progressive transition from direct indu
 The key idea is maintaining the same client–server philosophy during the entire learning process.
 
 Students first understand how robot communication works internally using low-level socket programming and later discover how ROS 2 provides a scalable and professional distributed robotics framework.
-
-By preserving the same conceptual architecture across both stages, students can focus on understanding the evolution of robotics software engineering instead of learning completely unrelated systems.
 
 The final result is a robust educational framework for teaching:
 
