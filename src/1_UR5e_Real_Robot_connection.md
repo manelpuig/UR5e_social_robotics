@@ -1,3 +1,22 @@
+# UR5e setup environment
+
+In simulation environment you have to install the complete UR metapackage:
+````bash
+sudo apt install ros-humble-ur
+````
+This metapackage installs:
+- ur_robot_driver
+- ur_moveit_config
+- ur_description
+- controllers and related configs
+
+To sync you have to:
+````bash
+git add .
+git commit -m "Message"
+git push
+````
+
 # Connecting and Controlling a Real UR5e Robot with ROS 2 Humble + MoveIt
 
 This document summarizes the necessary steps to connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS 2 Humble**, install the required URCaps, configure networking, and control the robot using **MoveIt**.

@@ -15,13 +15,11 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Your Name',
     maintainer_email='your_email@example.com',
     description='UR5e social motion package for pose sequences and motion execution.',
     license='Apache-2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'ur5e_move_to_pose_exe = ur5e_social_motion.ur5e_move_to_pose_exe:main',

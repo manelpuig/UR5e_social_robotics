@@ -19,13 +19,11 @@ setup(
         (os.path.join('share', package_name, 'config'),
             glob('config/*.yaml')),
     ],
-    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='manel',
     maintainer_email='manel.puig@ub.edu',
     description='UR5e motion server nodes for ROS 2',
     license='Apache-2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'ur5e_sequence_server = ur5e_motion_server.ur5e_sequence_server:main',
