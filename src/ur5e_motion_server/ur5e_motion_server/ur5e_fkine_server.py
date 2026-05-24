@@ -19,8 +19,6 @@ class UR5eFkineServer(Node):
         self.launch_package = self.get_parameter("launch_package").value
         self.launch_file = self.get_parameter("launch_file").value
 
-        self.busy = False
-
         self.srv = self.create_service(
             RunJoints,
             "/ur5e/run_fkine",
@@ -35,21 +33,16 @@ class UR5eFkineServer(Node):
 
     def run_fkine_callback(self, request, response):
 
-        if self.busy:
-            response.success = False
-            response.message = "Robot busy."
-            return response
-
-        self.busy = True
-
         try:
+            joints_deg = [float(v) for v in request.joints_deg]
+
             cmd = [
                 "ros2",
                 "launch",
                 self.launch_package,
                 self.launch_file,
 
-                f"joints:={list(request.joints_deg)}",
+                f"joints:={joints_deg}",
                 f"execute:={str(request.execute).lower()}",
                 f"max_velocity:={float(request.max_velocity)}",
                 f"max_acceleration:={float(request.max_acceleration)}",
@@ -58,26 +51,15 @@ class UR5eFkineServer(Node):
             self.get_logger().info("Executing fkine using launch command:")
             self.get_logger().info(" ".join(cmd))
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-            )
+            subprocess.Popen(cmd)
 
-            if result.returncode != 0:
-                self.get_logger().error(result.stderr)
-                response.success = False
-                response.message = "Fkine execution failed."
-            else:
-                self.get_logger().info(result.stdout)
-                response.success = True
-                response.message = "Fkine executed successfully."
+            response.success = True
+            response.message = "Fkine launch started."
 
         except Exception as e:
             response.success = False
             response.message = f"Exception: {e}"
 
-        self.busy = False
         return response
 
 

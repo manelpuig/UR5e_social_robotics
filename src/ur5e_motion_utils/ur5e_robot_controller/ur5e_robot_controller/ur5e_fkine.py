@@ -85,7 +85,8 @@ class UR5eMoveJoints(Node):
         self.wait_fk_service_sec = float(self.get_parameter("wait_fk_service_sec").value)
 
         # Joint states gate
-        self._have_js = None
+        self._last_js = None
+        self._have_js = False
         self.create_subscription(JointState, "/joint_states", self._js_cb, 10)
 
         # TF listener
@@ -117,6 +118,7 @@ class UR5eMoveJoints(Node):
 
     def _js_cb(self, msg: JointState):
         self._last_js = msg
+        self._have_js = True
 
     # -------- TF obtained pose (after motion) --------
     def _get_ee_pose_tf(self):

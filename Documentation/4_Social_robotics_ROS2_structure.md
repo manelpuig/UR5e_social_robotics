@@ -471,14 +471,18 @@ ros2 launch social_robot_behaviors social_behavior.launch.py
 ````
 ````bash
 ros2 run social_robot_behaviors ur5e_pose_client --ros-args \
+  -p service_name:=/ur5e/run_pose \
   -p target_xyz:="[-100.0, -300.0, 300.0]" \
   -p target_rpy:="[90.0, 0.0, 0.0]" \
   -p seed_from_joint_states:=false \
   -p seed_joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]" \
-  -p execute:=true
+  -p execute:=true \
+  -p max_velocity:=0.1 \
+  -p max_acceleration:=0.1
 ````
 ````bash
 ros2 run social_robot_behaviors ur5e_fkine_client --ros-args \
+  -p service_name:=/ur5e/run_fkine \
   -p joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]" \
   -p execute:=true \
   -p max_velocity:=0.1 \
