@@ -126,12 +126,36 @@ class UR5ePoseServer(Node):
         self.busy = True
 
         try:
-            if not self.ik_client.wait_for_service(timeout_sec=5.0):
+            if not self.ik_client.wait_for_service(timeout_sec=1.0):
                 response.success = False
-                response.message = "Service /compute_ik not available. Start MoveIt first."
+                response.message = "Waiting for /compute_ik. Try again."
+                self.busy = False
+                return response
+            # Simple readiness check:
+            # If the request wants to use /joint_states as IK seed,
+            # make sure they are already available before computing IK.
+            if request.seed_from_joint_states and self._last_js is None:
+                response.success = False
+                response.message = "Waiting for /joint_states. Try again."
                 self.busy = False
                 return response
 
+            # Simple TF check:
+            # Make sure the transform target_frame -> planning_frame is available.
+            # Example: table -> base_link.
+            if not self.tf_buffer.can_transform(
+                self.planning_frame,
+                self.target_frame,
+                rclpy.time.Time(),
+                timeout=Duration(seconds=0.2),
+            ):
+                response.success = False
+                response.message = (
+                    f"Waiting for TF {self.planning_frame} <- {self.target_frame}. "
+                    "Try again."
+                )
+                self.busy = False
+                return response
             xyz_m = mm_to_m_list(request.target_xyz_mm)
             rpy_rad = deg_to_rad_list(request.target_rpy_deg)
 

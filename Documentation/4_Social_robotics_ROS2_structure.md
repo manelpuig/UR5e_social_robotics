@@ -435,6 +435,24 @@ ur5e_robot_controller.py
 from the Python socket architecture.
 
 ---
+**Test exemple**
+
+- Terminal 1 — UR fake driver
+````bash
+ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.0.20 use_fake_hardware:=true launch_rviz:=false
+````
+- Terminal 2 - launch MoveIt2
+````bash
+ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=true
+````
+- Terminal 3 - launch go to pose
+````bash
+ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
+  target_xyz:="[-100.0, -300.0, 300.0]" \
+  target_rpy:="[90.0, 0.0, 0.0]" \
+  seed_from_joint_states:=false \
+  seed_joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]"
+````
 
 # 9. Future Gesture-Based Interaction
 

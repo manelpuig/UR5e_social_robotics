@@ -58,7 +58,7 @@ def generate_launch_description():
 
     node = Node(
         package="ur5e_robot_controller",
-        executable="ur5e_forward_kinematics_exe",
+        executable="ur5e_fkine_exe",
         name="ur5e_move_joints",
         output="screen",
         parameters=[

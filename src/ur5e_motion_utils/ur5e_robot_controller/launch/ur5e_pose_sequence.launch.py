@@ -11,7 +11,7 @@ def generate_launch_description():
     sequence_file = LaunchConfiguration("sequence_file")
 
     sequence_path = PathJoinSubstitution([
-        FindPackageShare("ur5e_kinematics_pymoveit2"),
+        FindPackageShare("ur5e_robot_controller"),
         "config",
         sequence_file,
     ])

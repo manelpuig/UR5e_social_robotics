@@ -47,6 +47,10 @@ class UR5eMoveToPoseViaIK(Node):
     def __init__(self):
         super().__init__("ur5e_move_to_pose")
 
+        # Startup delay
+        # This gives time to receive /joint_states and TF frames
+        # before trying to compute IK.
+        self.declare_parameter("startup_delay_sec", 3.0)
         # Pose target
         self.declare_parameter("target_xyz", [0.40, 0.00, 0.30])
         self.declare_parameter("target_rpy", [0.0, math.pi, 0.0])
@@ -92,6 +96,7 @@ class UR5eMoveToPoseViaIK(Node):
         self.execute_motion = bool(self.get_parameter("execute").value)
         self.print_joints = bool(self.get_parameter("print_joints").value)
         self.seed_from_joint_states = bool(self.get_parameter("seed_from_joint_states").value)
+        self.startup_delay_sec = float(self.get_parameter("startup_delay_sec").value)
 
         if len(self.target_xyz) != 3:
             raise ValueError("Parameter 'target_xyz' must contain exactly 3 values.")
@@ -127,7 +132,9 @@ class UR5eMoveToPoseViaIK(Node):
         self.moveit2.max_acceleration = self.max_acceleration
 
         self._done = False
-        self.create_timer(0.2, self._run_once)
+        # Delay the first execution to allow /joint_states and TF
+        # to become available after starting the fake driver / MoveIt2.
+        self.create_timer(self.startup_delay_sec, self._run_once)
 
     def _js_cb(self, msg: JointState):
         self._last_js = msg
@@ -181,11 +188,15 @@ class UR5eMoveToPoseViaIK(Node):
     def _run_once(self):
         if self._done:
             return
-        self._done = True
 
-        if not self.ik_client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().error("Service /compute_ik not available. Start MoveIt first.")
-            rclpy.shutdown()
+        # Wait until /compute_ik is available
+        if not self.ik_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn("Waiting for /compute_ik service...")
+            return
+
+        # Wait until /joint_states is available when using it as IK seed
+        if self.seed_from_joint_states and self._last_js is None:
+            self.get_logger().warn("Waiting for /joint_states...")
             return
 
         # 1) Pose expressed in target_frame, normally "table"
@@ -197,11 +208,17 @@ class UR5eMoveToPoseViaIK(Node):
         )
 
         # 2) Transform pose to planning_frame, normally "base_link"
+        # If TF is not ready yet, do not shutdown. Retry on next timer cycle.
         pose_base = self._transform_pose_to_planning_frame(pose_target)
 
         if pose_base is None:
-            rclpy.shutdown()
+            self.get_logger().warn(
+                "TF not available yet. Waiting and retrying..."
+            )
             return
+
+        # From here, startup checks are OK. Execute only once.
+        self._done = True
 
         self.get_logger().info(
             f"Pose goal transformed to {self.planning_frame}: "

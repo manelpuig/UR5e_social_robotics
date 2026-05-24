@@ -61,7 +61,7 @@ class UR5eJointServer(Node):
 
         self.srv = self.create_service(
             RunJoints,
-            "/ur5e/run_joints",
+            "/ur5e/run_fkine",
             self.run_joints_callback,
         )
 
@@ -81,7 +81,22 @@ class UR5eJointServer(Node):
         self.busy = True
 
         try:
+            # Simple readiness check:
+            # Make sure /joint_states contains all UR5e joints before sending a motion.
+            if self._last_js is None:
+                response.success = False
+                response.message = "Waiting for /joint_states. Try again."
+                self.busy = False
+                return response
 
+            name_to_pos = dict(zip(self._last_js.name, self._last_js.position))
+
+            if not all(j in name_to_pos for j in UR5E_JOINTS):
+                response.success = False
+                response.message = "Waiting for UR5e joints in /joint_states. Try again."
+                self.busy = False
+                return response
+                
             joints_rad = deg_to_rad_list(request.joints_deg)
 
             self.get_logger().info(

@@ -19,6 +19,13 @@ This metapackage installs:
 - ur_description
 - controllers and related configs
 
+Verify the `.bashrc` file:
+````bash
+source /opt/ros/humble/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+source /home/user/UR5e_social_robotics/install/setup.bash
+cd /home/user/UR5e_social_robotics
+```` 
 To sync you have to:
 ````bash
 git add .

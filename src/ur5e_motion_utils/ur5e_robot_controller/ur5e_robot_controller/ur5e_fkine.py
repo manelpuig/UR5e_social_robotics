@@ -68,6 +68,8 @@ class UR5eMoveJoints(Node):
         self.declare_parameter("wait_fk_service_sec", 8.0)
 
         self.joints = [float(v) for v in self.get_parameter("joints").value]
+        if len(self.joints) != 6:
+            raise ValueError("Parameter 'joints' must contain exactly 6 values.")
         self.group_name = str(self.get_parameter("group_name").value)
         self.execute = bool(self.get_parameter("execute").value)
         self.max_velocity = float(self.get_parameter("max_velocity").value)
@@ -83,7 +85,7 @@ class UR5eMoveJoints(Node):
         self.wait_fk_service_sec = float(self.get_parameter("wait_fk_service_sec").value)
 
         # Joint states gate
-        self._have_js = False
+        self._have_js = None
         self.create_subscription(JointState, "/joint_states", self._js_cb, 10)
 
         # TF listener
@@ -113,8 +115,8 @@ class UR5eMoveJoints(Node):
         # FK service client
         self._fk_client = self.create_client(GetPositionFK, self.fk_service_name)
 
-    def _js_cb(self, _msg: JointState):
-        self._have_js = True
+    def _js_cb(self, msg: JointState):
+        self._last_js = msg
 
     # -------- TF obtained pose (after motion) --------
     def _get_ee_pose_tf(self):
@@ -223,15 +225,31 @@ class UR5eMoveJoints(Node):
     def run_once(self):
         self.get_logger().info(f"Target joints (rad): {self.joints}")
 
-        # 1) Wait for joint states
+        # 1) Wait for /joint_states with all UR5e joints
         t0 = self.get_clock().now()
-        while rclpy.ok() and not self._have_js:
-            if (self.get_clock().now() - t0).nanoseconds * 1e-9 > self.wait_js:
-                self.get_logger().error("Timed out waiting for /joint_states.")
-                return 1
-            rclpy.spin_once(self, timeout_sec=0.1)
-        self.get_logger().info("Joint states are available now.")
 
+        while rclpy.ok():
+            if self._last_js is not None:
+                name_to_pos = dict(
+                    zip(self._last_js.name, self._last_js.position)
+                )
+
+                if all(j in name_to_pos for j in self.joint_names):
+                    self.get_logger().info(
+                        "Joint states with all UR5e joints are available now."
+                    )
+                    break
+
+            if (self.get_clock().now() - t0).nanoseconds * 1e-9 > self.wait_js:
+                self.get_logger().error(
+                    "Timed out waiting for UR5e joints in /joint_states."
+                )
+                return 1
+
+            self.get_logger().warn(
+                "Waiting for UR5e joints in /joint_states..."
+            )
+            rclpy.spin_once(self, timeout_sec=0.1)
         # 2) Model FK for target joints
         try:
             fk_model_target = self._get_fk_pose_model(self.joints)

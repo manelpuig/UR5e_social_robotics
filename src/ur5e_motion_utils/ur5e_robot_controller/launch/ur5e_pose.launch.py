@@ -93,7 +93,7 @@ def generate_launch_description():
 
     move_to_pose_node = Node(
         package="ur5e_robot_controller",
-        executable="ur5e_move_to_pose_table_exe",
+        executable="ur5e_pose_exe",
         name="ur5e_move_to_pose",
         output="screen",
         parameters=[{
