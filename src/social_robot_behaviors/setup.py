@@ -38,6 +38,8 @@ setup(
     entry_points={
         "console_scripts": [
             "behavior_manager_client_node = social_robot_behaviors.behavior_manager_client_node:main",
+            'ur5e_pose_client = social_robot_behaviors.ur5e_pose_client:main',
+            'ur5e_fkine_client = social_robot_behaviors.ur5e_fkine_client:main',
         ],
     },
 )

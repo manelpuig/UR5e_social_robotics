@@ -16,7 +16,7 @@ steps:
     target_xyz: [0, -400, 500]
     target_rpy: [90.0, 0.0, 0.0]
     seed_from_joint_states: false
-    seed_joints: [30, -130, 140, -180, -30, 180]
+    seed_joints: [-60, -60, -100, 170, -60, 0]
     duration: 4.0
     sleep_after: 1.0
 
@@ -45,6 +45,6 @@ steps:
     target_xyz: [0, -400, 500]
     target_rpy: [90.0, 0.0, 0.0]
     seed_from_joint_states: false
-    seed_joints: [30, -130, 140, -180, -30, 180]
+    seed_joints: [-60, -60, -100, 170, -60, 0]
     duration: 4.0
     sleep_after: 1.0

@@ -26,7 +26,7 @@ class BehaviorManagerClientNode(Node):
 
         self.declare_parameter(
             "motions_package",
-            "ur5e_motion_sequences"
+            "ur5e_robot_controller"
         )
 
         self.declare_parameter(
@@ -36,7 +36,7 @@ class BehaviorManagerClientNode(Node):
 
         self.declare_parameter(
             "motion_launch_package",
-            "ur5e_kinematics_control"
+            "ur5e_robot_controller"
         )
 
         self.declare_parameter(
