@@ -1,36 +1,43 @@
 from setuptools import setup
-import os
 from glob import glob
+import os
 
-package_name = 'social_robot_behaviors'
+package_name = "social_robot_behaviors"
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version="0.0.1",
     packages=[package_name],
-    install_requires=['setuptools'],
-    zip_safe=True,
-    maintainer='manel',
-    maintainer_email='manel@example.com',
-    description='Social robot behavior orchestrator',
-    license='Apache-2.0',
+
     data_files=[
         (
-            'share/ament_index/resource_index/packages',
-            ['resource/' + package_name],
+            "share/ament_index/resource_index/packages",
+            ["resource/" + package_name],
         ),
         (
-            'share/' + package_name,
-            ['package.xml'],
+            "share/" + package_name,
+            ["package.xml"],
         ),
         (
-            os.path.join('share', package_name, 'launch'),
-            glob('launch/*.py'),
+            os.path.join("share", package_name, "launch"),
+            glob("launch/*.launch.py"),
+        ),
+        (
+            os.path.join("share", package_name, "config"),
+            glob("config/*.yaml"),
         ),
     ],
+
+    install_requires=["setuptools"],
+    zip_safe=True,
+    maintainer="Manel Puig",
+    maintainer_email="puigmanel@gmail.com",
+    description="Social robot behavior manager",
+    license="Apache-2.0",
+
     entry_points={
-        'console_scripts': [
-            'social_behavior_manager = social_robot_behaviors.social_behavior_manager:main',
+        "console_scripts": [
+            "behavior_manager_client_node = social_robot_behaviors.behavior_manager_client_node:main",
         ],
     },
 )
