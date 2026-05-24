@@ -453,6 +453,10 @@ ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
   seed_from_joint_states:=false \
   seed_joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]"
 ````
+- Terminal 4 — launch pose sequence
+````bash
+ros2 launch ur5e_robot_controller ur5e_pose_sequence.launch.py sequence_file:=give5.yaml
+````
 **Client-server test**
 
 - Terminal 3 — sequence server

@@ -46,14 +46,6 @@ def normalize_angle_near_reference(angle, reference):
         math.cos(angle - reference),
     )
 
-
-def wrap_to_pi(angle):
-    """
-    Limit an angle to [-pi, pi] to avoid accumulated wrist rotations.
-    """
-    return math.atan2(math.sin(angle), math.cos(angle))
-
-
 def quat_from_rpy_zyx(roll, pitch, yaw):
     cy = math.cos(yaw * 0.5)
     sy = math.sin(yaw * 0.5)
@@ -333,9 +325,7 @@ class UR5ePoseSequenceSimple(Node):
                 f"current={current:.4f}"
             )
 
-        # Final safety normalization: keep all commanded joints in [-pi, pi].
-        # This avoids accumulated turns such as 6.28, 8.22 or 9.34 rad.
-        return [wrap_to_pi(q) for q in normalized_goal]
+        return normalized_goal
 
     def _on_ik_result(self, future, step, name):
         try:
