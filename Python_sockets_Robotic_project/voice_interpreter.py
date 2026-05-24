@@ -4,7 +4,7 @@ from config import ACTIVATION_WORD
 from typing import Optional
 
 
-class CommandInterpreter:
+class VoiceInterpreter:
 
     @staticmethod
     def normalize_text(text: str) -> str:

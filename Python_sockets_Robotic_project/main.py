@@ -1,11 +1,11 @@
 from voice import VoiceInterface
-from command_interpreter import CommandInterpreter
+from voice_interpreter import VoiceInterpreter
 from behavior_manager_client import BehaviorManager
 
 
 def main():
     voice = VoiceInterface()
-    interpreter = CommandInterpreter()
+    interpreter = VoiceInterpreter()
     behavior = BehaviorManager()
 
     voice.speak("Voice control started.")

@@ -108,6 +108,7 @@ steps:
 
     blend: 0.0
 ```
+> If time: -1, the motion will be executed at the specified velocity and acceleration without a time limit until the robot reaches the target pose.
 
 This representation provides several advantages:
 

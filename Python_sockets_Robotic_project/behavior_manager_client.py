@@ -64,7 +64,7 @@ class BehaviorManager:
             print(f"[SERVER RESPONSE] {response.strip()}")
 
             sock.close()
-
+            # Returns true if server response starts with "OK", indicating successful execution
             return response.startswith("OK")
 
         except Exception as e:
