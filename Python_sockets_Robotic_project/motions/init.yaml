@@ -1,0 +1,10 @@
+sequence_name: init
+
+steps:
+  - name: init
+    motion: moveJ
+    joints_deg: [-60, -65, -100, 170, -60, 0]
+    acceleration: 1.2
+    velocity: 0.5
+    time: 4.0
+    blend: 0.0

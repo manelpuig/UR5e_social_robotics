@@ -3,16 +3,19 @@
 # behavior_manager.py
 
 import socket
+from pathlib import Path
 from typing import Optional
 
 from config import SERVER_IP, SERVER_PORT
 from utils.yaml_loader import load_yaml_file
 
+BASE_DIR = Path(__file__).resolve().parent
+MOTIONS_DIR = BASE_DIR / "motions"
 
 MOTIONS = {
     "init": "motions/init.yaml",
-    "hand_shake": "motions/hand_shake.yaml",
-    "give_me_5": "motions/give_me_5.yaml",
+    "hand_shake": "motions/handshake.yaml",
+    "give5": "motions/give5.yaml",
 }
 
 
@@ -26,6 +29,11 @@ class BehaviorManager:
         return MOTIONS.get(command)
 
     def execute_command(self, command: str) -> bool:
+
+        if command == "exit":
+            print("[BEHAVIOR] Exit command received.")
+            return True
+        
         motion_file = self.get_motion_file(command)
 
         if motion_file is None:
@@ -46,6 +54,7 @@ class BehaviorManager:
                 yaml_text = f.read()
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5.0)
             sock.connect((self.server_ip, self.server_port))
 
             sock.sendall(yaml_text.encode("utf-8"))

@@ -25,11 +25,12 @@ class CommandInterpreter:
 
         text = text[len(ACTIVATION_WORD):].strip()
 
-        if any(k in text for k in ["exit", "quit", "stop"]):
+        if any(k in text for k in ["exit", "quit", "close"]):
             return "exit"
 
         if any(k in text for k in [
             "init",
+            "in it",
             "home",
             "go home",
             "initial position",
@@ -41,17 +42,18 @@ class CommandInterpreter:
             "hand shake",
             "handshake",
             "shake hand",
-            "shake my hand",
-            "greet me"
+            "shake my hand"
         ]):
             return "hand_shake"
 
         if any(k in text for k in [
             "give me five",
+            "give 5",
             "give me 5",
             "high five",
+            "d5",
             "give me a high five"
         ]):
-            return "give_me_5"
+            return "give5"
 
         return "unknown"

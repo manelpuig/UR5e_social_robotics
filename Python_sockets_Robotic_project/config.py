@@ -6,7 +6,7 @@ SERVER_PORT = 5000
 ROBOT_IP = "192.168.0.20"
 ROBOT_PORT = 30002
 
-RDK_FILE = "src/roboDK/Social_UR5e.rdk"
+#RDK_FILE = "src/roboDK/Social_UR5e.rdk"
 
 MOTIONS_DIR = "motions"
 

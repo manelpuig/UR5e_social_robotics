@@ -96,9 +96,9 @@ steps:
 
     motion: moveL
 
-    target_xyz_mm: [400, 100, 300]
+    target_xyz_mm: [-300, -300, 300]
 
-    target_rpy_deg: [180, 0, 90]
+    target_rpy_deg: [90, 0, 0]
 
     velocity: 0.15
 
@@ -257,9 +257,9 @@ MOTIONS = {
 
     "init": "motions/init.yaml",
 
-    "hand_shake": "motions/hand_shake.yaml",
+    "hand_shake": "motions/handshake.yaml",
 
-    "give_me_5": "motions/give_me_5.yaml"
+    "give_me_5": "motions/give5.yaml"
 }
 ```
 
@@ -383,6 +383,17 @@ UR5e Robot
 
 # 8. Example Interaction
 
+- In a new terminal on the python directory, run the motion server:
+
+```bash
+python ur5e_motion_server.py
+```
+- In another terminal, run the main application:
+
+```bash
+python main.py
+```
+- Speak the command:
 ```text
 User:
 "robot shake my hand"
