@@ -6,7 +6,7 @@ import socket
 from typing import Optional
 
 from config import SERVER_IP, SERVER_PORT
-from yaml_loader import load_yaml_file
+from utils.yaml_loader import load_yaml_file
 
 
 MOTIONS = {

@@ -18,10 +18,10 @@ import os
 SERVER_IP = "0.0.0.0"
 SERVER_PORT = 5000
 
-ROBOT_IP = "192.168.1.4"
+ROBOT_IP = "192.168.0.20"
 ROBOT_PORT = 30002
 
-RDK_FILE = "src/roboDK/Social_UR5e.rdk"
+RDK_FILE = "Python_sockets_Robotic_project/roboDK/Social_UR5e.rdk"
 
 MAX_YAML_SIZE_BYTES = 20000
 

@@ -1,6 +1,6 @@
-from voice_interface import VoiceInterface
+from voice import VoiceInterface
 from command_interpreter import CommandInterpreter
-from behavior_manager import BehaviorManager
+from behavior_manager_client import BehaviorManager
 
 
 def main():
