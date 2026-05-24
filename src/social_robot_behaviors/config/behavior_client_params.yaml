@@ -2,10 +2,10 @@ behavior_manager_client_node:
 
   ros__parameters:
 
-    motions_package: "ur5e_motion_sequences"
+    motions_package: "ur5e_robot_controller"
 
     motions_dir: "config"
 
-    motion_launch_package: "ur5e_kinematics_control"
+    motion_launch_package: "ur5e_robot_controller"
 
     motion_launch_file: "ur5e_pose_sequence.launch.py"

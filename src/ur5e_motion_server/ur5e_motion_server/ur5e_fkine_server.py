@@ -1,77 +1,39 @@
 #!/usr/bin/env python3
 
-import math
+import subprocess
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-
-from sensor_msgs.msg import JointState
-
-from pymoveit2 import MoveIt2
 
 from ur5e_interfaces.srv import RunJoints
 
 
-UR5E_JOINTS = [
-    "shoulder_pan_joint",
-    "shoulder_lift_joint",
-    "elbow_joint",
-    "wrist_1_joint",
-    "wrist_2_joint",
-    "wrist_3_joint",
-]
-
-
-def deg_to_rad_list(values):
-    return [float(x) * math.pi / 180.0 for x in values]
-
-
-class UR5eJointServer(Node):
+class UR5eFkineServer(Node):
 
     def __init__(self):
+        super().__init__("ur5e_fkine_server")
 
-        super().__init__("ur5e_joint_server")
+        self.declare_parameter("launch_package", "ur5e_robot_controller")
+        self.declare_parameter("launch_file", "ur5e_fkine.launch.py")
 
-        self.declare_parameter("group_name", "ur_manipulator")
-        self.declare_parameter("base_frame", "base_link")
-        self.declare_parameter("ee_frame", "tool0")
+        self.launch_package = self.get_parameter("launch_package").value
+        self.launch_file = self.get_parameter("launch_file").value
 
-        self.group_name = self.get_parameter("group_name").value
-        self.base_frame = self.get_parameter("base_frame").value
-        self.ee_frame = self.get_parameter("ee_frame").value
-
-        self._last_js = None
         self.busy = False
-
-        self.create_subscription(
-            JointState,
-            "/joint_states",
-            self._js_cb,
-            qos_profile_sensor_data,
-        )
-
-        self.moveit2 = MoveIt2(
-            node=self,
-            joint_names=UR5E_JOINTS,
-            base_link_name=self.base_frame,
-            end_effector_name=self.ee_frame,
-            group_name=self.group_name,
-        )
 
         self.srv = self.create_service(
             RunJoints,
             "/ur5e/run_fkine",
-            self.run_joints_callback,
+            self.run_fkine_callback,
         )
 
-        self.get_logger().info("UR5e joint server ready.")
-        self.get_logger().info("Service: /ur5e/run_joints")
+        self.get_logger().info("UR5e fkine server ready.")
+        self.get_logger().info("Service: /ur5e/run_fkine")
+        self.get_logger().info(
+            f"Launch target: {self.launch_package} {self.launch_file}"
+        )
 
-    def _js_cb(self, msg):
-        self._last_js = msg
-
-    def run_joints_callback(self, request, response):
+    def run_fkine_callback(self, request, response):
 
         if self.busy:
             response.success = False
@@ -81,78 +43,41 @@ class UR5eJointServer(Node):
         self.busy = True
 
         try:
-            # Simple readiness check:
-            # Make sure /joint_states contains all UR5e joints before sending a motion.
-            if self._last_js is None:
+            cmd = [
+                "ros2",
+                "launch",
+                self.launch_package,
+                self.launch_file,
+
+                f"joints:={list(request.joints_deg)}",
+                f"execute:={str(request.execute).lower()}",
+                f"max_velocity:={float(request.max_velocity)}",
+                f"max_acceleration:={float(request.max_acceleration)}",
+            ]
+
+            self.get_logger().info("Executing fkine using launch command:")
+            self.get_logger().info(" ".join(cmd))
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+            )
+
+            if result.returncode != 0:
+                self.get_logger().error(result.stderr)
                 response.success = False
-                response.message = "Waiting for /joint_states. Try again."
-                self.busy = False
-                return response
-
-            name_to_pos = dict(zip(self._last_js.name, self._last_js.position))
-
-            if not all(j in name_to_pos for j in UR5E_JOINTS):
-                response.success = False
-                response.message = "Waiting for UR5e joints in /joint_states. Try again."
-                self.busy = False
-                return response
-                
-            joints_rad = deg_to_rad_list(request.joints_deg)
-
-            self.get_logger().info(
-                f"Received joint target (deg): "
-                f"{request.joints_deg}"
-            )
-
-            self.get_logger().info(
-                f"Converted joint target (rad): "
-                f"{joints_rad}"
-            )
-
-            self.moveit2.max_velocity = float(
-                request.max_velocity
-            )
-
-            self.moveit2.max_acceleration = float(
-                request.max_acceleration
-            )
-
-            if not request.execute:
-
+                response.message = "Fkine execution failed."
+            else:
+                self.get_logger().info(result.stdout)
                 response.success = True
-                response.message = (
-                    "execute=false -> motion not executed."
-                )
-
-                self.busy = False
-                return response
-
-            self.get_logger().info(
-                "Executing joint motion via MoveIt2..."
-            )
-
-            self.moveit2.move_to_configuration(
-                joints_rad
-            )
-
-            self.moveit2.wait_until_executed()
-
-            self.get_logger().info(
-                "Joint motion execution finished."
-            )
-
-            response.success = True
-            response.message = (
-                "Joint motion executed successfully."
-            )
+                response.message = "Fkine executed successfully."
 
         except Exception as e:
-
             response.success = False
-            response.message = str(e)
+            response.message = f"Exception: {e}"
 
         self.busy = False
-
         return response
 
 
@@ -160,7 +85,7 @@ def main():
 
     rclpy.init()
 
-    node = UR5eJointServer()
+    node = UR5eFkineServer()
 
     rclpy.spin(node)
 
@@ -169,4 +94,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

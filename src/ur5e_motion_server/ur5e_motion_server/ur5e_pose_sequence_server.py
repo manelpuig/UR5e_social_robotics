@@ -70,12 +70,10 @@ class UR5eSequenceServer(Node):
 
             cmd = [
                 "ros2",
-                "run",
+                "launch",
                 "ur5e_robot_controller",
-                "ur5e_pose_sequence_exe",
-                "--ros-args",
-                "-p",
-                f"sequence_file:={sequence_file}"
+                "ur5e_pose_sequence.launch.py",
+                f"sequence_file:={sequence_file}",
             ]
 
             result = subprocess.run(

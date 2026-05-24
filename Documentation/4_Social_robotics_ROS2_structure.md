@@ -435,7 +435,7 @@ ur5e_robot_controller.py
 from the Python socket architecture.
 
 ---
-**Test exemple**
+**ur5e_robot_controller Test**
 
 - Terminal 1 — UR fake driver
 ````bash
@@ -453,6 +453,23 @@ ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
   seed_from_joint_states:=false \
   seed_joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]"
 ````
+**Client-server test**
+
+- Terminal 3 — sequence server
+````bash
+ros2 run ur5e_motion_server ur5e_sequence_server
+````
+- Terminal 4 — behavior manager client
+````bash
+ros2 launch social_robot_behaviors social_behavior.launch.py
+````
+- Terminal 5 — publish behavior
+````bash
+ros2 topic pub /social_behavior std_msgs/msg/String "{data: 'hand_shake'}" --once
+ros2 topic pub /social_behavior std_msgs/msg/String "{data: 'give5'}" --once
+````
+> In rviz2 you will see the sequence executed
+
 
 # 9. Future Gesture-Based Interaction
 

@@ -42,23 +42,6 @@ def quat_from_rpy_zyx(roll: float, pitch: float, yaw: float):
     return float(qx), float(qy), float(qz), float(qw)
 
 
-def normalize_angle_near_reference(angle, reference):
-    """
-    Return an equivalent angle angle + 2*pi*k that is closest to reference.
-    """
-    return reference + math.atan2(
-        math.sin(angle - reference),
-        math.cos(angle - reference),
-    )
-
-
-def wrap_to_pi(angle):
-    """
-    Limit an angle to [-pi, pi] to avoid accumulated wrist rotations.
-    """
-    return math.atan2(math.sin(angle), math.cos(angle))
-
-
 class UR5eMoveToPoseViaIK(Node):
 
     def __init__(self):
@@ -283,51 +266,6 @@ class UR5eMoveToPoseViaIK(Node):
         future = self.ik_client.call_async(req)
         future.add_done_callback(self._on_ik)
 
-    def _normalize_joint_goal_near_current_state(self, joint_goal):
-        """
-        Normalize the IK solution using the current /joint_states as reference,
-        then limit the final commanded joints to [-pi, pi].
-        """
-        if self._last_js is None:
-            self.get_logger().warn(
-                "No /joint_states available for joint normalization. "
-                "Using wrapped raw IK solution."
-            )
-            return [wrap_to_pi(q) for q in joint_goal]
-
-        name_to_pos = dict(zip(self._last_js.name, self._last_js.position))
-
-        if not all(j in name_to_pos for j in UR5E_JOINTS):
-            self.get_logger().warn(
-                "/joint_states does not contain all UR5e joints. "
-                "Using wrapped raw IK solution."
-            )
-            return [wrap_to_pi(q) for q in joint_goal]
-
-        current_joints = [float(name_to_pos[j]) for j in UR5E_JOINTS]
-
-        normalized_goal = [
-            normalize_angle_near_reference(goal, current)
-            for goal, current in zip(joint_goal, current_joints)
-        ]
-
-        self.get_logger().info("Normalized IK joint goal near current state:")
-        for joint_name, raw, norm, current in zip(
-            UR5E_JOINTS,
-            joint_goal,
-            normalized_goal,
-            current_joints,
-        ):
-            self.get_logger().info(
-                f"  {joint_name}: raw={raw:.4f}, "
-                f"normalized={norm:.4f}, "
-                f"current={current:.4f}"
-            )
-
-        # Final safety normalization: keep all commanded joints in [-pi, pi].
-        # This avoids accumulated turns such as 6.28, 8.22 or 9.34 rad.
-        return [wrap_to_pi(q) for q in normalized_goal]
-
     def _on_ik(self, future):
         try:
             res = future.result()
@@ -350,8 +288,6 @@ class UR5eMoveToPoseViaIK(Node):
             self.get_logger().error(f"IK solution missing expected joint: {e}")
             rclpy.shutdown()
             return
-
-        joint_goal = self._normalize_joint_goal_near_current_state(joint_goal)
 
         if self.print_joints:
             self.get_logger().info("IK joint goal:")
