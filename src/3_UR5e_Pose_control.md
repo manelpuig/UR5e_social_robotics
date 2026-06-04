@@ -66,11 +66,11 @@ source install/setup.bash
 In a simulation environment:
 - Run the UR driver:
   ```bash
-  ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.1.4 use_fake_hardware:=true launch_rviz:=false
+  ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.1.4 use_fake_hardware:=true launch_rviz:=true
   ````
 - Run MoveIt:
   ```bash
-  ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=true
+  ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=false
   ```
 - Move the robot to a desired joint configuration: 
   ```bash
@@ -131,7 +131,7 @@ In a **Real UR5e** robot with MoveIt:
 You can use the following commands:
 - Go to pose with actual joint states as seed:
   ```bash
-  ros2 launch ur5e_kinematics_pymoveit2 ur5e_move_to_pose_table.launch.py \
+  ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
     target_xyz:="[-100.0, -300.0, 300.0]" \
     target_rpy:="[90.0, 0.0, 0.0]" \
     seed_from_joint_states:=true
@@ -139,7 +139,7 @@ You can use the following commands:
   > Perhaps `/compute_ik`has not found solution because the seed is too far from the target pose. In that case, you can provide a custom seed:
 - Go to pose with new seed_joint states as seed:
   ```bash
-  ros2 launch ur5e_kinematics_pymoveit2 ur5e_move_to_pose_table.launch.py \
+  ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
     target_xyz:="[-100.0, -300.0, 300.0]" \
     target_rpy:="[90.0, 0.0, 0.0]" \
     seed_from_joint_states:=false \
@@ -171,5 +171,5 @@ For each step, the node:
 
 As a first exemple we can execute the handshake sequence defined in `handshake.yaml`:
   ```bash
-  ros2 launch ur5e_kinematics_pymoveit2 ur5e_pose_sequence_simple.launch.py sequence_file:=handshake.yaml
+  ros2 launch ur5e_robot_controller ur5e_pose_sequence.launch.py sequence_file:="give5.yaml"
   ```

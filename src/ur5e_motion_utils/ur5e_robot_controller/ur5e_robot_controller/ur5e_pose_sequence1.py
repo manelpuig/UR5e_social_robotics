@@ -37,6 +37,15 @@ def mm_to_m_list(values):
     return [float(x) / 1000.0 for x in values]
 
 
+def normalize_angle_near_reference(angle, reference):
+    """
+    Return an equivalent angle angle + 2*pi*k that is closest to reference.
+    """
+    return reference + math.atan2(
+        math.sin(angle - reference),
+        math.cos(angle - reference),
+    )
+
 def quat_from_rpy_zyx(roll, pitch, yaw):
     cy = math.cos(yaw * 0.5)
     sy = math.sin(yaw * 0.5)
@@ -279,6 +288,45 @@ class UR5ePoseSequenceSimple(Node):
 
         return req
 
+    def _normalize_joint_goal_near_current_state(self, joint_goal):
+        if self._last_js is None:
+            self.get_logger().warn(
+                "No /joint_states available for joint normalization. "
+                "Using raw IK solution."
+            )
+            return joint_goal
+
+        name_to_pos = dict(zip(self._last_js.name, self._last_js.position))
+
+        if not all(j in name_to_pos for j in UR5E_JOINTS):
+            self.get_logger().warn(
+                "/joint_states does not contain all UR5e joints. "
+                "Using raw IK solution."
+            )
+            return joint_goal
+
+        current_joints = [float(name_to_pos[j]) for j in UR5E_JOINTS]
+
+        normalized_goal = [
+            normalize_angle_near_reference(goal, current)
+            for goal, current in zip(joint_goal, current_joints)
+        ]
+
+        self.get_logger().info("Normalized IK joint goal near current state:")
+        for joint_name, raw, norm, current in zip(
+            UR5E_JOINTS,
+            joint_goal,
+            normalized_goal,
+            current_joints,
+        ):
+            self.get_logger().info(
+                f"  {joint_name}: raw={raw:.4f}, "
+                f"normalized={norm:.4f}, "
+                f"current={current:.4f}"
+            )
+
+        return normalized_goal
+
     def _on_ik_result(self, future, step, name):
         try:
             res = future.result()
@@ -303,6 +351,8 @@ class UR5ePoseSequenceSimple(Node):
             self.get_logger().error(f"IK solution missing joint: {e}")
             rclpy.shutdown()
             return
+
+        joint_goal = self._normalize_joint_goal_near_current_state(joint_goal)
 
         if self.print_joints:
             self.get_logger().info("Final IK joint goal:")
