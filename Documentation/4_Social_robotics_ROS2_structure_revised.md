@@ -361,11 +361,9 @@ Open **Terminal 4**:
 source /opt/ros/humble/setup.bash
 source ~/ur5e_social_ws/install/setup.bash
 
-ros2 service call /ur5e/run_sequence \
-  ur5e_interfaces/srv/RunSequence \
-  "{sequence_name: 'group03_wave.yaml'}"
+ros2 launch ur5e_robot_controller ur5e_pose_sequence.launch.py   sequence_file:=give5.yaml
 ```
-
+![](../Documentation/Images/ur5e_motion/give5.png)
 Expected workflow:
 
 ```text

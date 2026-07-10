@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, TimerAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -45,8 +45,13 @@ def generate_launch_description():
         }],
     )
 
+    delayed_sequence_node = TimerAction(
+        period=2.0,
+        actions=[sequence_node],
+    )
+
     return LaunchDescription([
         sequence_arg,
         static_table_tf,
-        sequence_node,
+        delayed_sequence_node,
     ])
