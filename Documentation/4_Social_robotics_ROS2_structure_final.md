@@ -441,10 +441,14 @@ from the Python socket architecture.
 ````bash
 ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.0.20 use_fake_hardware:=true launch_rviz:=false
 ````
+![](./Images/ur5e_motion/fake_driver.png)
+
 - Terminal 2 - launch MoveIt2
 ````bash
 ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur5e launch_rviz:=true
 ````
+![](./Images/ur5e_motion/fake_driver_moveit.png)
+
 - Terminal 3 - launch go to pose
 ````bash
 ros2 launch ur5e_robot_controller ur5e_pose.launch.py \
@@ -465,10 +469,14 @@ ros2 run ur5e_motion_server ur5e_sequence_server
 ros2 run ur5e_motion_server ur5e_pose_server
 ros2 run ur5e_motion_server ur5e_fkine_server
 ````
+![](./Images/ur5e_motion/fake_driver_moveit_server.png)
+
 - Terminal 4 — client
 ````bash
 ros2 launch social_robot_behaviors social_behavior.launch.py
 ````
+![](./Images/ur5e_motion/fake_driver_moveit_server_client.png)
+
 ````bash
 ros2 run social_robot_behaviors ur5e_pose_client --ros-args \
   -p service_name:=/ur5e/run_pose \
@@ -496,6 +504,7 @@ ros2 topic pub /social_behavior std_msgs/msg/String "{data: 'give5'}" --once
 ````
 > In rviz2 you will see the sequence executed
 
+![](./Images/ur5e_motion/fake_driver_moveit_server_client_motion.png)
 
 # 9. Future Gesture-Based Interaction
 
