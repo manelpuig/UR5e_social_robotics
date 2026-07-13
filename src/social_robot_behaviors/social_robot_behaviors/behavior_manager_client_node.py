@@ -33,7 +33,7 @@ class BehaviorManagerClientNode(Node):
         self.behaviors = {
             "init",
             "home",
-            "hand_shake",
+            "handshake",
             "give5",
         }
 
