@@ -18,7 +18,7 @@ class UR5eSequenceServer(Node):
         super().__init__("ur5e_sequence_server")
 
         package_share_dir = get_package_share_directory(
-            "ur5e_motion_server"
+            "ur5e_robot_controller"
         )
 
         default_sequences_dir = os.path.join(

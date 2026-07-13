@@ -5,6 +5,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import String
 from ur5e_interfaces.srv import RunSequence
+import re
 
 
 class BehaviorManagerClientNode(Node):
@@ -25,17 +26,6 @@ class BehaviorManagerClientNode(Node):
         self.service_name = self.get_parameter(
             "service_name"
         ).value
-
-        # ---------------------------------------------------------
-        # Known social behaviors
-        # ---------------------------------------------------------
-
-        self.behaviors = {
-            "init",
-            "home",
-            "handshake",
-            "give5",
-        }
 
         # ---------------------------------------------------------
         # Service client
@@ -77,10 +67,10 @@ class BehaviorManagerClientNode(Node):
             f"Received social behavior: {behavior_name}"
         )
 
-        if behavior_name not in self.behaviors:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", behavior_name):
 
             self.get_logger().error(
-                f"Unknown behavior: {behavior_name}"
+                f"Invalid behavior name: {behavior_name}"
             )
 
             return
@@ -101,6 +91,7 @@ class BehaviorManagerClientNode(Node):
         )
 
         future = self.sequence_client.call_async(request)
+
         future.add_done_callback(
             self.sequence_response_callback
         )

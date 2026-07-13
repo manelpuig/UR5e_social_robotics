@@ -20,25 +20,25 @@ steps:
     duration: 4.0
     sleep_after: 1.0
 
-  - name: approach_handshake
+  - name: approach_give5
     target_xyz: [-300, -300, 500]
     target_rpy: [0.0, 0.0, 90.0]
     seed_from_joint_states: true
     duration: 4.0
     sleep_after: 1.0
 
-  - name: handshake
+  - name: give5
     target_xyz: [-300, -400, 500]
     target_rpy: [0.0, 0.0, 90.0]
     seed_from_joint_states: true
-    duration: 4.0
+    duration: 2.0
     sleep_after: 1.0
 
-  - name: retreat_handshake
+  - name: retreat_give5
     target_xyz: [-300, -300, 500]
     target_rpy: [0.0, 0.0, 90.0]
     seed_from_joint_states: true
-    duration: 4.0 
+    duration: 2.0 
     sleep_after: 1.0
 
   - name: home_end
