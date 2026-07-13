@@ -15,8 +15,8 @@ steps:
   - name: home_start
     target_xyz: [0, -400, 500]
     target_rpy: [90.0, 0.0, 0.0]
-    seed_from_joint_states: true #false
-    #seed_joints: [-60, -60, -100, 170, -60, 0]
+    seed_from_joint_states: false #true #
+    seed_joints: [-60, -60, -100, 170, -60, 0]
     duration: 4.0
     sleep_after: 1.0
 
@@ -31,20 +31,20 @@ steps:
     target_xyz: [-300, -300, 200]
     target_rpy: [90.0, 0.0, 0.0]
     seed_from_joint_states: true
-    duration: 4.0
+    duration: 2.0
     sleep_after: 1.0
 
   - name: retreat_handshake
     target_xyz: [-300, -300, 300]
     target_rpy: [90.0, 0.0, 0.0]
     seed_from_joint_states: true
-    duration: 4.0 
+    duration: 2.0 
     sleep_after: 1.0
 
   - name: home_end
     target_xyz: [0, -400, 500]
     target_rpy: [90.0, 0.0, 0.0]
-    seed_from_joint_states: true #false
-    #seed_joints: [-60, -60, -100, 170, -60, 0]
+    seed_from_joint_states: false #true #false
+    seed_joints: [-60, -60, -100, 170, -60, 0]
     duration: 4.0
     sleep_after: 1.0

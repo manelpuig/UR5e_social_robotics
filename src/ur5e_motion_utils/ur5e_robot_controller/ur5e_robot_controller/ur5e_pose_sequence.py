@@ -120,6 +120,7 @@ class UR5ePoseSequenceSimple(Node):
 
         self.step_index = 0
         self.waiting = False
+        self.finished = False
 
         self.get_logger().info(f"Loaded sequence file: {self.sequence_file}")
         self.get_logger().info(f"Number of steps: {len(self.steps)}")
@@ -139,7 +140,7 @@ class UR5ePoseSequenceSimple(Node):
 
         if self.step_index >= len(self.steps):
             self.get_logger().info("Sequence finished.")
-            rclpy.shutdown()
+            self.finished = True
             return
 
         if not self.ik_client.service_is_ready():
@@ -376,10 +377,23 @@ class UR5ePoseSequenceSimple(Node):
         self.waiting = False
 
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
+
     node = UR5ePoseSequenceSimple()
-    rclpy.spin(node)
+
+    try:
+        while rclpy.ok() and not node.finished:
+            rclpy.spin_once(node, timeout_sec=0.1)
+
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        node.destroy_node()
+
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":
