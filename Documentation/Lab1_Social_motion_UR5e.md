@@ -316,7 +316,7 @@ ros2 service type /ur5e/run_sequence
 You will see:
 
 ```text 
-ros2 service type /ur5e/run_sequence
+ur5e_interfaces/srv/RunSequence
 ```
 
 Verify the server:

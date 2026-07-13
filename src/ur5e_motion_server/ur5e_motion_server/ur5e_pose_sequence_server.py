@@ -75,11 +75,12 @@ class UR5eSequenceServer(Node):
 
         sequence_name = sequence_name.strip()
 
+        # Accept both "give5" and "give5.yaml"
         if sequence_name.endswith(".yaml"):
             sequence_name = sequence_name[:-5]
 
-        # Allow simple names such as:
-        # hand_shake, give5, my-social-motion
+        # Allow names such as:
+        # give5, hand_shake, my-social-motion
         if not re.fullmatch(
             r"[A-Za-z0-9_-]+",
             sequence_name
@@ -95,7 +96,7 @@ class UR5eSequenceServer(Node):
             )
         )
 
-        # Additional protection against path traversal
+        # Protection against path traversal
         if os.path.commonpath(
             [self.sequences_dir, sequence_file]
         ) != self.sequences_dir:
