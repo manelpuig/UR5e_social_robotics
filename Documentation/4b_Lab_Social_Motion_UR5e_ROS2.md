@@ -157,6 +157,7 @@ When your motion works correctly:
 ```bash
 python3 send_social_motion.py
 ```
+> Verify your PC-IP address on the python program
 
 3. Enter the YAML filename when requested.
 
