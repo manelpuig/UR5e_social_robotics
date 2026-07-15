@@ -83,12 +83,12 @@ Create the YAML file in:
 ur5e_robot_controller/config/
 ```
 
-Use descriptive names such as:
+Use descriptive names such as (add your group number in the social motion name):
 
 ``` text
-wave.yaml
-invite_person.yaml
-show_agreement.yaml
+groupX_wave.yaml
+groupX_invite_person.yaml
+groupX_show_agreement.yaml
 ```
 
 ------------------------------------------------------------------------
@@ -150,33 +150,24 @@ sequence_file:=my_social_motion.yaml
 
 When your motion works correctly:
 
-1.  Give the YAML file to the instructor.
-2.  The instructor copies it into:
+1. Open a terminal on `/Documentation/Files/Send_motion` folder.
 
-``` text
-ur5e_robot_controller/config/
+2. Run the Python program:
+
+```bash
+python3 send_social_motion.py
 ```
 
-3.  The instructor verifies the motion using fake hardware.
-4.  If the motion is safe, it is executed on the real UR5e.
+3. Enter the YAML filename when requested.
 
-The student never sends the YAML file through ROS 2.
+4. Enter the password for the `student` user on the professor PC.
 
-Only the behavior name is published:
+If the copy is successful, you should see:
 
-On PC-Professor
-
-
-``` bash
-ros2 topic pub --once /social_behavior std_msgs/msg/String \
-"{data: 'my_social_motion'}"
+```text
+File copied successfully.
 ```
 
-The server automatically loads:
-
-``` text
-my_social_motion.yaml
-```
 
 ## 6. Laboratory execution
 
@@ -209,7 +200,7 @@ On **PC-Student** Start:
 ```bash
 ros2 launch social_robot_behaviors social_behavior.launch.py
 ```
-- Publish the behavior:
+- Publish the desired behavior:
 
 ``` bash
 ros2 topic pub --once /social_behavior std_msgs/msg/String \
