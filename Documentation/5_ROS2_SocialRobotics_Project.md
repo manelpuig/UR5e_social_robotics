@@ -30,7 +30,7 @@ The same social behavior will be used in Sessions 1 and 2. This makes it possibl
 
 ## Student Task
 
-Students do not need to program or modify the communication architecture. Their work is limited to:
+Students do not need to modify the ROS 2 communication architecture. Their work is limited to:
 
 - selecting safe initial, intermediate, and final poses;
 - writing the poses in the corresponding YAML format;
@@ -39,6 +39,47 @@ Students do not need to program or modify the communication architecture. Their 
 - evaluating the motion on the real robot.
 
 The Python sockets and ROS 2 YAML formats are different. Students will use the same intermediate poses but adapt them to the provided example file for each architecture.
+
+## What must change when creating a new motion?
+
+### Python sockets
+
+The prepared Python sockets client uses a fixed behavior-to-file dictionary. For a new motion, students must:
+
+1. Create the YAML file in `Python_sockets_Robotic_project/motions/`.
+2. Add the behavior name and YAML path to `behavior_manager_client.py`:
+
+```python
+"wave": "motions/wave.yaml",
+```
+
+3. If they want to request the motion by voice, add a matching phrase to `command_interpreter.py` that returns `"wave"`.
+4. Start the server and client and request the behavior using the registered name.
+
+The dictionary key and the command returned by `command_interpreter.py` must match. The YAML path includes the `.yaml` extension, while the behavior command does not.
+
+### ROS 2
+
+The ROS 2 Behavior Manager Client does not contain a behavior-to-file dictionary. A new motion only requires:
+
+1. Create the ROS 2 YAML file in `src/ur5e_motion_utils/ur5e_robot_controller/config/`.
+2. Use a filename containing only letters, numbers, `_`, or `-`, for example `group1_wave.yaml`.
+3. Build and source the workspace so the file is installed:
+
+```bash
+cd ~/UR5e_social_robotics
+colcon build --symlink-install
+source install/setup.bash
+```
+
+4. Publish the filename without `.yaml` on `/social_behavior`:
+
+```bash
+ros2 topic pub --once /social_behavior std_msgs/msg/String \
+    "{data: 'group1_wave'}"
+```
+
+The ROS 2 sequence server adds `.yaml`, checks that the file exists, and launches the sequence. No change to `behavior_manager_client_node.py` is required for each new motion.
 
 ## General Safety Rules
 
@@ -58,8 +99,9 @@ The Python sockets and ROS 2 YAML formats are different. Students will use the s
 3. Identify its safe initial, intermediate, and final poses.
 4. Create the Python sockets YAML file using an existing file as a template.
 5. Save it in `Python_sockets_Robotic_project/motions/` with a descriptive group name, for example `groupX_wave.yaml`.
-6. Check the YAML file and the client-server request locally.
-7. Verify the motion poses with the available simulation tools before coming to the laboratory.
+6. Register the new motion in `behavior_manager_client.py` and, if required, in `command_interpreter.py`.
+7. Check the YAML file and the client-server request locally.
+8. Verify the motion poses with RoboDK before coming to the laboratory.
 
 ### In class: experimental work
 
@@ -121,7 +163,6 @@ Each group must submit:
 
 ## Supporting Documentation
 
-- `3a_Social_Robotics_Python_Sockets_Architecture.md`: Python sockets architecture.
-- `3b_Lab_Social_Robotics_UR5e_Python_Sockets.md`: Python sockets laboratory instructions.
-- `4a_Social_Robotics_ROS2_Architecture.md`: ROS 2 architecture.
+- `3_Lab_Social_Robotics_UR5e_Python_Sockets.md`: Python sockets laboratory instructions.
 - `4b_Lab_Social_Motion_UR5e_ROS2.md`: ROS 2 simulation and laboratory instructions.
+- `2_UR5e_Classroom_Architecture.md`: common classroom architecture, safety, and validation workflow.

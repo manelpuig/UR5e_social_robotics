@@ -17,7 +17,7 @@ To properly work on UR5e robot manipulation moveit2 stack will be used. Moveit h
 
 The official package is `moveit_py`, but `pymoveit2` is simpler and recommended for beginners.
 
-## 1. Install `pymoveit` package
+## 1. Install `pymoveit2`
 
 Basic Python interface for MoveIt 2 built on top of ROS 2 actions and services. (https://docs.ros.org/en/humble/p/pymoveit2/index.html
 )
@@ -35,10 +35,10 @@ Instructions to install:
     ```
 - Delete some folders to sync the ws on remote github
     ```bash
-    cd ~/Desktop/UR5e_social_robotics/src/ur5e_motion/pymoveit2
+    cd ~/Desktop/UR5e_social_robotics/src/ur5e_motion_utils/pymoveit2
     sudo rm -rf .git
     cd ~/Desktop/UR5e_social_robotics
-    git rm --cached src/ur5e_motion/pymoveit2
+    git rm --cached src/ur5e_motion_utils/pymoveit2
     ```
 
 ## 2. Create the package
@@ -97,9 +97,9 @@ ros2 launch ur5e_kinematics_pymoveit2 ur5e_forward_kinematics.launch.py \
 
 It is important to note that:
 - POSE in roboDK is referenced to `table` frame
-- POSE in ROS2 (Gazebo) is referenced to `base_link` frame
+- POSE in the ROS 2 fake-hardware setup is referenced to the `base_link` frame
 
-![Gazebo_base_link](../Documentation/Images/ur5e_motion/3_gazebo_base_link.png)
+![base_link frame](../Documentation/Images/ur5e_motion/3_gazebo_base_link.png)
 > This POSE corresponds to `zero_angle` in our Real robot ur5e paltform
 
 UR robots have `base_link` frame 180 deg from `table` frame, then:
@@ -145,7 +145,7 @@ You can use the following commands:
     seed_from_joint_states:=false \
     seed_joints:="[-90.0, -90.0, 90.0, 0.0, 90.0, 0.0]"
   ```
-  ![Gazebo_base_link](../Documentation/Images/ur5e_motion/4_ur5e_moveit2.png)
+  ![MoveIt 2 pose](../Documentation/Images/ur5e_motion/4_ur5e_moveit2.png)
 
   > It is important to choose proper seed_joints to help moveit to find the desired configuration branch
 

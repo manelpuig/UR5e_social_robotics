@@ -47,20 +47,20 @@ To connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS
 
 ### 2.1. Network Setup
 
-Ensure the PC and UR5e are connected with a proper eternet cable.
+Ensure the PC and UR5e are connected with a proper Ethernet cable.
 
-Configure proper fixed IP adress:
+Configure proper fixed IP addresses:
 - PC IP: `192.168.0.10`
 - UR5e IP: `192.168.0.20`
 
 Verify connection in a pc-cmd:
 ```bash
-ping 192.168.0.10
+ping 192.168.0.20
 ```
 
 ### 2.2. UR5e robot Configuration
 
-There are requirements on Polyscope software version and URcap external control
+There are requirements for the Polyscope software version and the URCap External Control.
 
 #### 2.2.1. Polyscope software
 To properly work on ros2 Humble, the Polyscope version has to be higher than 5.9.5. We have installed the 5.25.1 version.
@@ -108,7 +108,7 @@ The PC is an Ubuntu22 with ROS2 Humble and we have to install different modulus:
 sudo apt install ros-humble-ur-robot-driver
 sudo apt install ros-humble-ros2controlcli
 sudo apt install ros-humble-ur-calibration
-apt install ros-humble-moveit
+sudo apt install ros-humble-moveit
 ````
 
 The recommended installation is:
@@ -117,12 +117,45 @@ The recommended installation is:
     sudo apt update
     sudo apt install ros-humble-ur ros-humble-ros2controlcli
     ````
-- Extract the callibration and obtain a URDF correct model from your real UR5e
+    - Extract the calibration data and obtain a correct URDF model from your real UR5e
     ````bash
     ros2 launch ur_calibration calibration_correction.launch.py \
         robot_ip:=192.168.0.20 \
         target_filename:=${HOME}/ur5e_calibration.yaml
     ````
+
+### 2.3.1. Optional low-latency configuration
+
+The low-latency kernel is relevant to the Teacher PC that runs the UR driver, controllers, and MoveIt 2. It is not required on Student PCs that only publish high-level requests.
+
+Install and verify it with:
+
+```bash
+sudo apt install linux-lowlatency
+sudo reboot
+uname -r
+```
+
+For systems that require real-time scheduling permissions, configure them on the Teacher PC:
+
+```bash
+sudo groupadd realtime
+sudo usermod -aG realtime $USER
+sudo nano /etc/security/limits.d/99-realtime.conf
+```
+
+Add:
+
+```text
+@realtime soft rtprio 99
+@realtime hard rtprio 99
+@realtime soft priority 99
+@realtime hard priority 99
+@realtime soft memlock unlimited
+@realtime hard memlock unlimited
+```
+
+Log out and back in, or reboot, after changing group membership.
 
 ### 2.4. Quick start
 

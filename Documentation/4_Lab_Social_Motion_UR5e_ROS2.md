@@ -80,7 +80,7 @@ Requirements:
 Create the YAML file in:
 
 ``` text
-ur5e_robot_controller/config/
+src/ur5e_motion_utils/ur5e_robot_controller/config/
 ```
 
 Use descriptive names such as (add your group number in the social motion name):
@@ -140,8 +140,8 @@ Test the motion:
 
 ``` bash
 ros2 launch ur5e_robot_controller \
-ur5e_pose_sequence.launch.py \
-sequence_file:=my_social_motion.yaml
+        ur5e_pose_sequence.launch.py \
+        sequence_file:=my_social_motion.yaml
 ```
 
 ------------------------------------------------------------------------

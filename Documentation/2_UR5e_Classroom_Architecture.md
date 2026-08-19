@@ -1,331 +1,216 @@
-# UR5e Educational Client–Server Architecture for Classroom Robotics
+# UR5e Classroom Architecture
 
 ## Overview
 
-This project defines a unified educational architecture for controlling a UR5e collaborative robot in a classroom environment composed of:
+This document defines the classroom architecture used to teach two ways of controlling a UR5e robot:
 
-* 1 Professor PC connected to the real UR5e robot through Ethernet
-* 5 Student PCs connected through the local network
-* A centralized and supervised robot control architecture
+1. Python TCP sockets and URScript.
+2. ROS 2 and MoveIt 2.
 
-The main objective is to teach students the evolution from low-level robot control using Python sockets and URScript to advanced robot control using ROS 2.
+The robot is connected to a dedicated Teacher PC. Student PCs send high-level requests through the local network, while the Teacher PC validates and executes robot motions.
 
-The same client–server philosophy is maintained throughout the entire learning process.
+The same client-server idea is used in both stages. The communication technology and motion execution layer change, but the responsibility boundary remains the same.
 
----
+## Classroom network
 
-# Educational Philosophy
+The classroom contains:
 
-The proposed methodology follows a progressive robotics learning strategy:
-
-## Stage 1 — Direct URScript Control using Python Sockets
-
-Students first learn how industrial robots can be controlled at a low level using:
-
-* Python
-* TCP/IP sockets
-* URScript commands
-
-In this stage:
-
-* Student PCs act as clients
-* The Professor PC acts as a centralized server
-* The Professor PC validates and forwards commands to the UR5e robot
-
-This approach allows students to:
-
-* Understand robot networking
-* Learn industrial robot communication basics
-* Send real robot movements with simple Python scripts
-
-Example educational concepts:
-
-* Socket programming
-* TCP client/server architecture
-* URScript motion commands
-* Robot safety supervision
-* Sequential motion execution
-* YAML-based motion definitions
-
-Although this approach is simple and very educational, students quickly discover several limitations:
-
-* Limited modularity and scalability
-* Difficult synchronization between modules
-* No standardized communication framework
-* Difficult integration of sensors and AI modules
-* Abrupt robot motions
-* Non-optimized trajectories
-
-Although TCP sockets are still used internally in industrial communication systems, professional robotics applications are usually implemented using:
-
-* Robotics middleware
-* Distributed node architectures
-* Motion planning frameworks
-* Standardized robot interfaces
-* Real-time controllers
-* Modular software ecosystems
-These limitations naturally motivate the transition toward ROS 2, MoveIt 2, and modern robotics software engineering principles..
-
----
-
-# Stage 2 — Advanced Robot Control using ROS 2
-
-After understanding low-level robot communication, students migrate to a ROS 2 architecture.
-
-The educational objective is to demonstrate how ROS 2 solves many limitations of direct socket programming.
-
-In this stage:
-
-* Student PCs continue acting as clients
-* The Professor PC continues acting as the centralized robot server
-* Communication is now implemented using ROS 2 topics, services, and actions
-* The UR5e is controlled through the ROS 2 UR driver and MoveIt 2
-
-Students learn:
-
-* Distributed robotics systems
-* ROS 2 nodes and packages
-* Topics, services, and actions
-* Robot state publishing
-* TF transformations
-* Motion planning with MoveIt 2
-* Trajectory execution
-* Sensor integration
-* AI integration
-* Modular robotics software architectures
-
-ROS 2 provides a more scalable, modular, robust, and professional implementation of the same architecture.
-
----
-
-# Unified Client–Server Philosophy
-
-A central aspect of the proposed teaching methodology is maintaining the same conceptual architecture during the entire course.
-
-Both approaches share the same structure:
-
-| Layer              | Python + URScript         | ROS 2                        |
-| ------------------ | ------------------------- | ---------------------------- |
-| Student PC         | Socket client             | ROS 2 client nodes           |
-| Professor PC       | Socket server             | ROS 2 centralized supervisor |
-| Communication      | TCP sockets               | ROS 2 DDS middleware         |
-| Motion commands    | URScript strings          | ROS 2 actions/services       |
-| Robot control      | Direct URScript execution | MoveIt 2 + UR driver         |
-| Safety supervision | Server-side validation    | ROS 2 supervision nodes      |
-
-This continuity helps students:
-
-* Understand the evolution of robotics architectures
-* Compare low-level vs high-level robot control
-* Understand why ROS 2 exists
-* Appreciate modular and distributed systems
-* Learn industrial robotics software engineering progressively
-
----
-
-# Real-Time and Low-Latency Requirements
-
-## Ubuntu Low-Latency Kernel Recommendation
-
-For both robot control approaches — Python sockets with URScript and ROS 2 with the UR driver — the Professor PC should use an Ubuntu low-latency kernel.
-
-Recommended systems:
-
-* Ubuntu 22.04 LTS
-* Linux low-latency kernel
-
-Installation:
-
-```bash
-sudo apt install linux-lowlatency
-```
-
-After installation, the system should be rebooted.
-
-Verify the active kernel:
-
-```bash
-uname -r
-```
-
-Expected output example:
+- one Ubuntu 22.04 Teacher PC connected to the UR5e through Ethernet;
+- several Student PCs connected to the classroom LAN or WiFi;
+- one UR5e robot controlled only by the Teacher PC.
 
 ```text
-6.8.0-71-lowlatency
+Student PC 1 ─┐
+Student PC 2 ─┼── classroom network ── Teacher PC ── Ethernet ── UR5e
+Student PC 3 ─┤
+Student PC 4 ─┘
 ```
 
----
+Only the Teacher PC runs the robot driver, MoveIt 2, trajectory controllers, and the motion execution server. Student PCs run clients or publishers that request prepared behaviors.
 
-## Real-Time Scheduling Permissions
-
-It is also recommended to configure real-time scheduling permissions.
-
-Create realtime group:
-
-```bash
-sudo groupadd realtime
-sudo usermod -aG realtime $USER
-```
-
-Create configuration file:
-
-```bash
-sudo nano /etc/security/limits.d/99-realtime.conf
-```
-
-Add:
+Use the actual network values configured for the laboratory. The examples below use placeholders:
 
 ```text
-@realtime soft rtprio 99
-@realtime hard rtprio 99
-@realtime soft priority 99
-@realtime hard priority 99
-@realtime soft memlock unlimited
-@realtime hard memlock unlimited
+ROBOT_IP=<UR5E_IP>
+TEACHER_PC_IP=<TEACHER_PC_IP>
+STUDENT_PC_IP=<STUDENT_PC_IP>
 ```
 
-Reboot the system:
+## Teacher PC responsibilities
 
-```bash
-sudo reboot
-```
+The Teacher PC is the central control and safety point. It:
 
-These settings allow ROS 2 controllers and industrial robot drivers to use high-priority scheduling with reduced execution jitter.
+- communicates directly with the UR5e;
+- runs the UR driver and, for ROS 2, MoveIt 2;
+- receives requests from student applications;
+- validates behavior names, YAML files, poses, and motion parameters;
+- prevents concurrent or unauthorized executions;
+- supervises the first execution of every student motion;
+- stops the experiment when a safety problem is detected.
 
-This configuration is commonly recommended for:
+Student PCs must not run the real robot driver, MoveIt 2, RTDE communication, or trajectory controllers for the classroom robot.
 
-* Universal Robots ROS 2 Driver
-* MoveIt 2
-* ros2_control
-* Industrial robotic applications
-* Real-time robot communication
+## Stage 1: Python sockets and URScript
 
----
-
-## Why Low Latency is Important
-
-Industrial robot control requires deterministic and stable communication timing.
-
-The UR5e robot continuously exchanges real-time motion information with the control PC.
-
-This includes:
-
-* Joint states
-* Trajectory commands
-* Velocity updates
-* RTDE communication packets
-* Motion interpolation
-* Safety state monitoring
-
-A standard desktop kernel may introduce:
-
-* Scheduling delays
-* Communication jitter
-* Unstable execution timing
-* Delayed motion updates
-* Driver communication interruptions
-
-These problems can produce:
-
-* Non-smooth robot motion
-* RTDE communication warnings
-* Driver reconnections
-* Delayed trajectory execution
-* Motion instability
-* Reduced control frequency
-
-The low-latency kernel significantly improves scheduling responsiveness and reduces communication jitter.
-
-
-# Classroom Network Architecture
-
-## Hardware Configuration
-
-* 1 UR5e collaborative robot
-* 1 Professor PC connected to the robot via Ethernet
-* 5 Student PCs connected through LAN/WiFi
-
-## Logical Architecture
+The first stage introduces low-level industrial robot communication.
 
 ```text
-+----------------+
-|  Student PC 1  |
-+----------------+
-         \
-+----------------+        +-------------------+        +-------------+
-|  Student PC 2  | -----> |   Professor PC    | -----> |    UR5e     |
-+----------------+        |  Central Server   |        |   Robot     |
-         /                +-------------------+        +-------------+
-+----------------+
-|  Student PC 3  |
-+----------------+
+Student application
+        │ TCP socket
+        ▼
+Teacher PC: ur5e_motion_server.py
+        ▼
+ur5e_robot_controller.py
+        │ URScript
+        ▼
+UR5e
 ```
 
-The Professor PC acts as:
+The Student PC runs the prepared client application from `Python_sockets_Robotic_project/`. The client interprets a behavior request and sends the behavior name to the server.
 
-* Motion supervisor
-* ROS 2 server
-* Safety gateway
-* Trajectory validator
-* Motion planner
-* Robot communication bridge
+The Teacher PC runs `ur5e_motion_server.py` and `ur5e_robot_controller.py`. The server loads the corresponding YAML file from `motions/`, validates the request, generates URScript, and executes one motion at a time.
 
----
+The Python motion format uses fields such as:
 
-# Progressive Learning Strategy
+```yaml
+sequence_name: wave
 
-The teaching sequence is intentionally progressive:
+steps:
+  - name: approach
+    motion: movel
+    target_xyz_mm: [-300, -300, 300]
+    target_rpy_deg: [90, 0, 0]
+    velocity: 0.10
+    acceleration: 0.50
+    time: 3.0
+    blend: 0.0
+```
 
-## Phase 1 — Industrial Robot Basics
+The client and server configuration uses TCP port `5000`. During local development, use `127.0.0.1`; in the classroom, the client uses the Teacher PC address and the server listens on `0.0.0.0`.
 
-Students learn:
+## Stage 2: ROS 2 and MoveIt 2
 
-* TCP/IP networking
-* Python sockets
-* URScript
-* Basic motion commands
-* Modular Python applications
-* YAML-based robot sequences
-* Motion servers
-* Distributed client applications
+The second stage replaces the custom TCP protocol with ROS 2 communication and direct URScript execution with MoveIt 2 and the UR driver.
 
-## Phase 2 — ROS 2 Robotics
+```text
+Student command publisher
+        │ /social_behavior
+        ▼
+Behavior Manager Client
+        │ /ur5e/run_sequence
+        ▼
+UR5e Sequence Server
+        ▼
+MoveIt 2 and UR driver
+        ▼
+UR5e
+```
 
-Students learn:
+The ROS 2 components are located in these packages:
 
-* ROS 2 nodes
-* Topics and services
-* MoveIt 2
-* Robot drivers
-* TF transformations
-* Navigation and perception
-* AI integration
+```text
+src/social_robot_behaviors/
+src/ur5e_motion_server/
+src/ur5e_motion_utils/ur5e_robot_controller/
+src/ur5e_interfaces/
+```
 
-## Phase 3 — Social and Intelligent Robotics
+The Behavior Manager Client subscribes to `/social_behavior` and calls `/ur5e/run_sequence`. The request contains the logical behavior name, for example `handshake`. The sequence server resolves that name to `handshake.yaml` in the installed `ur5e_robot_controller/config/` directory.
 
-Students integrate:
+To execute a sequence directly, use the launch file that exists in the `ur5e_robot_controller` package:
 
-* YOLO object detection
-* Gesture recognition
-* Voice interaction
-* Human–robot interaction
-* AI-based behaviors
-* Autonomous social robot applications
+```bash
+ros2 launch ur5e_robot_controller ur5e_pose_sequence.launch.py \
+  sequence_file:=handshake.yaml
+```
 
+The ROS 2 motion format is different from the Python sockets format. The same poses can be reused, but the YAML file must be adapted to the selected controller.
 
-# Conclusion
+## Common classroom workflow
 
-This educational architecture provides a progressive transition from direct industrial robot programming using Python sockets and URScript toward professional robotics development using ROS 2 and MoveIt 2.
+1. Design a social motion in RoboDK or another offline tool.
+2. Choose safe initial, intermediate, and final poses.
+3. Create the YAML file in the format required by the selected stage.
+4. Test the complete motion offline or with fake hardware.
+5. Check the YAML structure, limits, timing, workspace, and collision risk.
+6. Submit the motion to the instructor for review.
+7. Transfer the validated file to the Teacher PC.
+8. Run the first real-robot execution under instructor supervision.
+9. Compare the simulated and real executions and record any difference.
 
-The key idea is maintaining the same client–server philosophy during the entire learning process.
+## Fake hardware and home testing
 
-Students first understand how robot communication works internally using low-level socket programming and later discover how ROS 2 provides a scalable and professional distributed robotics framework.
+ROS 2 motions must be tested with the fake UR5e before they are tested on the real robot:
 
-The final result is a robust educational framework for teaching:
+```bash
+cd ~/UR5e_social_robotics
+colcon build --symlink-install
+source install/setup.bash
+```
 
-* Industrial robotics
-* Distributed systems
-* ROS 2
-* AI robotics
-* Human–robot interaction
-* Professional robotics software engineering
+Start the fake driver and MoveIt 2 in separate terminals:
+
+```bash
+ros2 launch ur_robot_driver ur_control.launch.py \
+  ur_type:=ur5e \
+  robot_ip:=<UR5E_IP> \
+  use_fake_hardware:=true \
+  launch_rviz:=false
+```
+
+```bash
+ros2 launch ur_moveit_config ur_moveit.launch.py \
+  ur_type:=ur5e \
+  launch_rviz:=true
+```
+
+Then test a sequence:
+
+```bash
+ros2 launch ur5e_robot_controller ur5e_pose_sequence.launch.py \
+  sequence_file:=handshake.yaml
+```
+
+The IP argument is retained by the launch configuration, but fake hardware does not connect to a physical robot.
+
+## Safety and instructor validation
+
+Every motion must:
+
+- have a clear social meaning;
+- start and finish in a safe configuration;
+- stay inside the robot workspace;
+- avoid collisions and joint limits;
+- use slow and smooth movements;
+- use validated velocities, accelerations, durations, and blending;
+- be tested with fake hardware or an offline simulator first.
+
+Before a real execution, the instructor must:
+
+1. review the YAML file and its poses;
+2. verify the workspace, collision risk, speed, and acceleration;
+3. confirm that the robot and teach pendant are correctly configured;
+4. authorize the execution;
+5. supervise the first execution at reduced speed.
+
+During every experiment, the workspace must remain clear, the emergency stop must be accessible, and one person must be ready to stop the robot. An unverified YAML file must never be executed on the real robot.
+
+## Educational progression
+
+| Layer | Python sockets and URScript | ROS 2 and MoveIt 2 |
+|---|---|---|
+| Student side | Python client | ROS 2 publisher or client node |
+| Teacher side | TCP motion server | Sequence server and ROS 2 nodes |
+| Communication | TCP socket | ROS 2 topics and services |
+| Motion description | Python sockets YAML | ROS 2 controller YAML |
+| Robot execution | URScript | MoveIt 2 and UR driver |
+| Safety point | Teacher-side validation | Teacher-side validation and supervised execution |
+
+This progression introduces networking, modular software, ROS 2 nodes, services, MoveIt 2, robot drivers, TF, trajectory execution, and human-robot interaction without changing the central safety boundary.
+
+## Related documents
+
+- [UR5e setup](1_UR5e_setup.md): operating-system, driver, network, and robot setup.
+- [Python sockets laboratory](3_Lab_Social_Robotics_UR5e_Python_Sockets.md): Stage 1 student instructions.
+- [ROS 2 laboratory](4b_Lab_Social_Motion_UR5e_ROS2.md): Stage 2 student instructions.
+- [Social robotics project](5_ROS2_SocialRobotics_Project.md): complete multi-session project.

@@ -105,6 +105,28 @@ show_agreement.yaml
 
 Do not use spaces or capital letters.
 
+### Register the new motion in the client
+
+Creating the YAML file is not enough for the prepared voice client to find it. Add an entry to `behavior_manager_client.py`:
+
+```python
+MOTIONS = {
+    "init": "motions/init.yaml",
+    "hand_shake": "motions/handshake.yaml",
+    "give5": "motions/give5.yaml",
+    "wave": "motions/wave.yaml",
+}
+```
+
+If the motion must be requested by voice, also add a phrase to `command_interpreter.py` that returns the same command name:
+
+```python
+if "wave" in text:
+    return "wave"
+```
+
+The command name, the dictionary key, and the YAML filename must agree. The YAML filename includes `.yaml`; the command sent by the client is the key without the extension.
+
 ---
 
 ## 4. YAML motion format
@@ -118,7 +140,7 @@ sequence_name: wave
 
 steps:
   - name: approach
-    motion: movel
+    motion: moveL
     target_xyz_mm: [-300, -300, 300]
     target_rpy_deg: [90, 0, 0]
     velocity: 0.10
@@ -156,7 +178,7 @@ SERVER_IP = 127.0.0.1
 ### Terminal 1 — Start the server
 
 ```bash
-cd ~/UR5e_social_robotics/python_socket
+cd ~/UR5e_social_robotics/Python_sockets_Robotic_project
 
 python3 ur5e_motion_server.py
 ```
@@ -164,7 +186,7 @@ python3 ur5e_motion_server.py
 ### Terminal 2 — Start the client
 
 ```bash
-cd ~/UR5e_social_robotics/python_socket
+cd ~/UR5e_social_robotics/Python_sockets_Robotic_project
 
 python3 main.py
 ```
@@ -191,7 +213,9 @@ TCP request
 motion server
 ```
 
-If RoboDK or another offline verification tool is available, use it to inspect the motion before the laboratory session.
+The server starts RoboDK in `simulation_only` mode and executes the received YAML there. Students can therefore inspect the movement visually without connecting to the real robot.
+
+The existing client recognizes `robot give me five` and `robot shake my hand`. The `robot wave` example works only after registering `wave` in `behavior_manager_client.py` and adding the corresponding voice rule to `command_interpreter.py`.
 
 ---
 
@@ -264,7 +288,7 @@ ping <TEACHER_PC_IP>
 Start the motion server:
 
 ```bash
-cd ~/UR5e_social_robotics/python_socket
+cd ~/UR5e_social_robotics/Python_sockets_Robotic_project
 
 python3 ur5e_motion_server.py
 ```
@@ -276,7 +300,7 @@ The Teacher PC is also connected to the UR5e.
 Start the client application:
 
 ```bash
-cd ~/UR5e_social_robotics/python_socket
+cd ~/UR5e_social_robotics/Python_sockets_Robotic_project
 
 python3 main.py
 ```
