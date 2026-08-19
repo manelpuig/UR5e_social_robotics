@@ -164,5 +164,5 @@ Each group must submit:
 ## Supporting Documentation
 
 - `3_Lab_Social_Robotics_UR5e_Python_Sockets.md`: Python sockets laboratory instructions.
-- `4b_Lab_Social_Motion_UR5e_ROS2.md`: ROS 2 simulation and laboratory instructions.
+- `4_Lab_Social_Motion_UR5e_ROS2.md`: ROS 2 simulation and laboratory instructions.
 - `2_UR5e_Classroom_Architecture.md`: common classroom architecture, safety, and validation workflow.
