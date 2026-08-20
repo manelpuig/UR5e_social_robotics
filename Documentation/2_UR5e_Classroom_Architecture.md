@@ -211,6 +211,6 @@ This progression introduces networking, modular software, ROS 2 nodes, services,
 ## Related documents
 
 - [UR5e setup](1_UR5e_setup.md): operating-system, driver, network, and robot setup.
-- [Python sockets laboratory](3_Lab_Social_Robotics_UR5e_Python_Sockets.md): Stage 1 student instructions.
-- [ROS 2 laboratory](4_Lab_Social_Motion_UR5e_ROS2.md): Stage 2 student instructions.
+- [Python sockets architecture](3_Python_Sockets_Architecture.md): components, configuration, and local verification.
+- [ROS 2 architecture](4_ROS2_Architecture.md): client, server, motion files, and verification.
 - [Social robotics project](5_ROS2_SocialRobotics_Project.md): complete multi-session project.

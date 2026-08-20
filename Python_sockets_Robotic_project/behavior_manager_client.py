@@ -40,15 +40,17 @@ class BehaviorManager:
             print(f"[BEHAVIOR] Unknown command: {command}")
             return False
 
+        motion_path = BASE_DIR / motion_file
+
         try:
-            load_yaml_file(motion_file)
+            load_yaml_file(motion_path)
         except Exception as e:
             print(f"[BEHAVIOR] Invalid YAML file: {e}")
             return False
 
-        return self.send_motion_file(motion_file)
+        return self.send_motion_file(motion_path)
 
-    def send_motion_file(self, motion_file: str) -> bool:
+    def send_motion_file(self, motion_file: Path) -> bool:
         try:
             with open(motion_file, "r", encoding="utf-8") as f:
                 yaml_text = f.read()

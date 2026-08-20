@@ -1,5 +1,5 @@
 from voice import VoiceInterface
-from voice_interpreter import VoiceInterpreter
+from command_interpreter import VoiceInterpreter
 from behavior_manager_client import BehaviorManager
 
 
