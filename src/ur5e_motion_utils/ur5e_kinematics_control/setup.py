@@ -22,6 +22,7 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
+            'ur5e_fkine_joint_state_exec = ur5e_kinematics_control.ur5e_fkine_joint_state:main',
             'ur5e_joint_target_exec = ur5e_kinematics_control.ur5e_joint_target:main',
             'ur5e_joint_targets_exec = ur5e_kinematics_control.ur5e_joint_targets:main',
         ],
