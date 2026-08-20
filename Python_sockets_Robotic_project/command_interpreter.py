@@ -44,7 +44,7 @@ class VoiceInterpreter:
             "shake hand",
             "shake my hand"
         ]):
-            return "hand_shake"
+            return "handshake"
 
         if any(k in text for k in [
             "give me five",

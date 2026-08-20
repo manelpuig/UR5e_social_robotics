@@ -1,0 +1,4 @@
+-r requirements_voice.txt
+opencv-python
+face-recognition
+dlib

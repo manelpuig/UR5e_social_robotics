@@ -10,6 +10,9 @@ class VoiceInterpreterNode(Node):
     def __init__(self):
         super().__init__('voice_interpreter_node')
 
+        self.declare_parameter('activation_word', 'robot')
+        self.declare_parameter('output_topic', '/social_behavior')
+
         self.subscription = self.create_subscription(
             String,
             '/voice/text',
@@ -19,7 +22,7 @@ class VoiceInterpreterNode(Node):
 
         self.publisher_ = self.create_publisher(
             String,
-            '/social_robot/command',
+            str(self.get_parameter('output_topic').value),
             10
         )
 
@@ -44,11 +47,20 @@ class VoiceInterpreterNode(Node):
 
     def interpret_text(self, text: str):
 
+        activation_word = str(
+            self.get_parameter('activation_word').value
+        ).lower().strip()
+
+        if activation_word:
+            if not text.startswith(activation_word):
+                return None
+            text = text[len(activation_word):].strip()
+
         if 'init' in text or 'home' in text:
             return 'init'
 
         if 'shake' in text or 'hand' in text:
-            return 'hand_shake'
+            return 'handshake'
 
         if 'five' in text or 'give me five' in text or 'give5' in text:
             return 'give5'

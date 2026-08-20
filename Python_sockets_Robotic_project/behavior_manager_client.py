@@ -14,7 +14,7 @@ MOTIONS_DIR = BASE_DIR / "motions"
 
 MOTIONS = {
     "init": "motions/init.yaml",
-    "hand_shake": "motions/handshake.yaml",
+    "handshake": "motions/handshake.yaml",
     "give5": "motions/give5.yaml",
 }
 
@@ -27,6 +27,10 @@ class BehaviorManager:
 
     def get_motion_file(self, command: str) -> Optional[str]:
         return MOTIONS.get(command)
+
+    def available_motions(self):
+        """Return the registered motion names exposed to all client interfaces."""
+        return sorted(MOTIONS)
 
     def execute_command(self, command: str) -> bool:
 

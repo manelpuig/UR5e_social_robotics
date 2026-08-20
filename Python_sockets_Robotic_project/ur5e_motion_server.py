@@ -3,9 +3,8 @@
 import socket
 import threading
 
-import yaml
-
 from ur5e_robot_controller import RobotController
+from utils.yaml_loader import load_yaml_text
 
 
 SERVER_IP = "0.0.0.0"
@@ -34,7 +33,7 @@ def handle_client(conn, addr, robot):
         yaml_text = receive_all(conn)
         print("\nReceived YAML:")
         print(yaml_text)
-        data = yaml.safe_load(yaml_text)
+        data = load_yaml_text(yaml_text)
 
         if not robot_lock.acquire(blocking=False):
             response = "ERROR: Robot is busy. Try again later.\n"

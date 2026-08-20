@@ -14,10 +14,11 @@ Use the same intermediate poses in both implementations so that the architecture
 1. Choose a motion such as waving, greeting, giving five, or pointing.
 2. Define safe initial, intermediate, and final poses.
 3. Create the Python sockets YAML in `Python_sockets_Robotic_project/motions/`.
-4. Register it in `behavior_manager_client.py` and `command_interpreter.py`.
-5. Verify the client and server locally with RoboDK.
-6. Create the ROS 2 YAML in `src/ur5e_motion_utils/ur5e_robot_controller/config/`.
-7. Build the workspace and verify the motion with fake hardware and MoveIt 2.
+4. Register it in `behavior_manager_client.py`.
+5. Verify the command-line client and server locally with RoboDK.
+6. Optionally register voice phrases in `command_interpreter.py` and test an HRI client.
+7. Create the ROS 2 YAML in `src/ur5e_motion_utils/ur5e_robot_controller/config/`.
+8. Build the workspace and verify the motion with fake hardware and MoveIt 2.
 
 See `3_Python_Sockets_Architecture.md` and `4_ROS2_Architecture.md` for architecture and verification commands.
 
@@ -34,10 +35,11 @@ Student PC:
 
 ```bash
 cd ~/UR5e_social_robotics/Python_sockets_Robotic_project
-python3 main.py
+python3 motion_client.py --list
+python3 motion_client.py <motion_name>
 ```
 
-The Student PC must use the Teacher PC IP in `config.py`. The teacher starts only the server; `ur5e_robot_controller.py` is imported automatically.
+The Student PC must use the Teacher PC IP in `config.py`. The teacher starts only the server; `ur5e_robot_controller.py` is imported automatically. The required focus is the YAML-over-TCP request, server validation, execution, and response. Voice control and face verification may be tested with `voice_motion_client.py` and `face_voice_motion_client.py`, but they are optional HRI extensions.
 
 ## Session 2 — ROS 2 and MoveIt 2
 

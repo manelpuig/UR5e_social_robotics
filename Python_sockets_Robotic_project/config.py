@@ -14,4 +14,9 @@ ACTIVATION_WORD = "robot"
 LANGUAGE = "en-US"
 TTS_RATE = 170
 
+# Optional face-verification interface.
+REFERENCE_FACE_IMAGE = "resources/Pictures/authorised_user.jpg"
+CAMERA_INDEX = 0
+FACE_MATCH_TOLERANCE = 0.6
+
 MAX_YAML_SIZE_BYTES = 20000

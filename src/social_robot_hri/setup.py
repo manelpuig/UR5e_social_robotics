@@ -20,12 +20,13 @@ setup(
     zip_safe=True,
     maintainer='Manel Puig',
     maintainer_email='puigmanel@gmail.com',
-    description='HRI input package for social robot voice and gesture commands',
+    description='HRI input package for social robot voice, face and gesture interfaces',
     license='MIT',
     entry_points={
         'console_scripts': [
             'voice_node = social_robot_hri.voice_node:main',
             'voice_interpreter_node = social_robot_hri.voice_interpreter_node:main',
+            'face_verification_node = social_robot_hri.face_verification_node:main',
             'gesture_node = social_robot_hri.gesture_node:main',
             'gesture_interpreter_node = social_robot_hri.gesture_interpreter_node:main',
         ],

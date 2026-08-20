@@ -1,6 +1,9 @@
-from voice import VoiceInterface
-from command_interpreter import VoiceInterpreter
+#!/usr/bin/env python3
+"""Optional HRI client: select and send motions using spoken commands."""
+
 from behavior_manager_client import BehaviorManager
+from command_interpreter import VoiceInterpreter
+from voice import VoiceInterface
 
 
 def main():
@@ -16,18 +19,14 @@ def main():
 
         if command is None:
             continue
-
         if command == "unknown":
             voice.speak("Command not understood.")
             continue
-
         if command == "exit":
             voice.speak("Goodbye.")
             break
 
-        success = behavior.execute_command(command)
-
-        if success:
+        if behavior.execute_command(command):
             voice.speak("Motion executed.")
         else:
             voice.speak("Motion failed.")

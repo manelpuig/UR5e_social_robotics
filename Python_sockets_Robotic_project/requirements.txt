@@ -1,5 +1,2 @@
-PyAudio
 PyYAML
 RoboDK
-SpeechRecognition
-pyttsx3

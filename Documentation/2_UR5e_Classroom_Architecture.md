@@ -66,9 +66,9 @@ ur5e_robot_controller.py
 UR5e
 ```
 
-The Student PC runs the prepared client application from `Python_sockets_Robotic_project/`. The client interprets a behavior request and sends the behavior name to the server.
+The Student PC runs `motion_client.py` from `Python_sockets_Robotic_project/`. The client resolves a behavior name locally, validates the corresponding file, and sends the complete YAML sequence to the server. Optional voice and face interfaces select behavior names through the same communication layer.
 
-The Teacher PC runs `ur5e_motion_server.py` and `ur5e_robot_controller.py`. The server loads the corresponding YAML file from `motions/`, validates the request, generates URScript, and executes one motion at a time.
+The Teacher PC starts `ur5e_motion_server.py`, which imports `ur5e_robot_controller.py`. The server parses the received YAML, executes it through the controller, and permits only one motion at a time.
 
 The Python motion format uses fields such as:
 
@@ -77,7 +77,7 @@ sequence_name: wave
 
 steps:
   - name: approach
-    motion: movel
+    motion: moveL
     target_xyz_mm: [-300, -300, 300]
     target_rpy_deg: [90, 0, 0]
     velocity: 0.10
