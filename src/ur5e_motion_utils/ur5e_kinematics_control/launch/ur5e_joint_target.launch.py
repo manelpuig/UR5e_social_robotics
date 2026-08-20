@@ -16,7 +16,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "controller_topic",
-            default_value="/joint_trajectory_controller/joint_trajectory"
+            default_value="/scaled_joint_trajectory_controller/joint_trajectory"
         ),
         DeclareLaunchArgument("base_frame", default_value="base_link"),
         DeclareLaunchArgument("tcp_frame", default_value="tool0"),

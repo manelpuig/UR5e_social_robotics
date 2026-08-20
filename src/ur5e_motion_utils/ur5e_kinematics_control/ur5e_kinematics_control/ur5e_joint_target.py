@@ -46,7 +46,7 @@ class MoveUR5e(Node):
         )
         self.declare_parameter(
             "controller_topic",
-            "/joint_trajectory_controller/joint_trajectory"
+            "/scaled_joint_trajectory_controller/joint_trajectory"
         )
         self.declare_parameter("base_frame", "base_link")
         self.declare_parameter("tcp_frame", "tool0")
