@@ -18,6 +18,9 @@ def generate_launch_description():
             "controller_topic",
             default_value="/joint_trajectory_controller/joint_trajectory"
         ),
+        DeclareLaunchArgument("base_frame", default_value="base_link"),
+        DeclareLaunchArgument("tcp_frame", default_value="tool0"),
+        DeclareLaunchArgument("tf_timeout_sec", default_value="2.0"),
 
         Node(
             package="ur5e_kinematics_control",
@@ -27,6 +30,9 @@ def generate_launch_description():
                 "target_deg": LaunchConfiguration("target_deg"),
                 "time_sec": LaunchConfiguration("time_sec"),
                 "controller_topic": LaunchConfiguration("controller_topic"),
+                "base_frame": LaunchConfiguration("base_frame"),
+                "tcp_frame": LaunchConfiguration("tcp_frame"),
+                "tf_timeout_sec": LaunchConfiguration("tf_timeout_sec"),
             }],
         )
     ])
