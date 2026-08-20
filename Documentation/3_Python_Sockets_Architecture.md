@@ -36,6 +36,131 @@ The main components are:
 
 Only `motion_client.py` and `ur5e_motion_server.py` are required entry points. Do not start `ur5e_robot_controller.py` separately.
 
+## From motion commands to URScript
+
+Before studying how the sequence crosses the classroom network, it is important to understand what the Teacher PC ultimately sends to the real UR5e.
+
+There are two different representations and two different TCP connections:
+
+```text
+Student PC                         Teacher PC                    UR5e
+motion YAML  -- TCP port 5000 --> motion server
+                                      |
+                                      | YAML step -> URScript
+                                      v
+                              robot controller -- TCP port 30002 --> UR5e
+```
+
+The Student PC does **not** send URScript directly to the robot. It sends a complete, readable YAML sequence to `ur5e_motion_server.py`. After validation, `ur5e_robot_controller.py` converts each YAML step into either a RoboDK instruction, a URScript instruction, or both, depending on `EXECUTION_MODE`.
+
+### Joint movement: `moveJ`
+
+`moveJ` moves every robot joint towards a target joint configuration. In the project YAML, joint positions are written in degrees:
+
+```yaml
+- name: initial_pose
+  motion: moveJ
+  joints_deg: [0, -90, 90, -90, -90, 0]
+  acceleration: 0.5
+  velocity: 0.1
+  time: -1
+  blend: 0.0
+```
+
+The corresponding URScript syntax is:
+
+```text
+movej(q, a, v, t, r)
+```
+
+where:
+
+- `q` contains the six joint targets in radians;
+- `a` is joint acceleration;
+- `v` is joint velocity;
+- `t` is an optional execution time in seconds. When `t > 0`, URScript makes the movement last that time and ignores `a` and `v`;
+- `r` is the blend radius used to smooth the transition to the next movement.
+
+For the YAML example, the generated instruction is approximately:
+
+```urscript
+movej([0.000000,-1.570796,1.570796,-1.570796,-1.570796,0.000000],
+      a=0.5, v=0.1, r=0.0)
+```
+
+Here `t` is omitted because the YAML uses `time: -1`. The project uses a negative value to mean "do not set an execution time; control the movement with acceleration and velocity". If the YAML instead uses `time: 3.0`, the generated instruction is:
+
+```urscript
+movej([0.000000,-1.570796,1.570796,-1.570796,-1.570796,0.000000],
+      a=0.5, v=0.1, t=3.0, r=0.0)
+```
+
+In this timed form, the UR controller ignores `a=0.5` and `v=0.1`. They remain visible because this project's generator always writes them into the instruction.
+
+The conversion is implemented in `RobotController.build_movej_script()` in `ur5e_robot_controller.py`. It converts degrees to radians with `math.radians()`. `RobotController.movej()` sends the generated URScript to the real robot and/or calls RoboDK's `MoveJ()`.
+
+### Linear Cartesian movement: `moveL`
+
+`moveL` moves the tool centre point along a straight Cartesian path. Students specify position in millimetres and orientation as roll-pitch-yaw angles in degrees:
+
+```yaml
+- name: greeting_pose
+  motion: moveL
+  target_xyz_mm: [-300, -300, 300]
+  target_rpy_deg: [90, 0, 0]
+  acceleration: 0.5
+  velocity: 0.1
+  time: -1
+  blend: 0.0
+```
+
+The corresponding URScript syntax is:
+
+```text
+movel(p[x, y, z, rx, ry, rz], a, v, t, r)
+```
+
+where:
+
+- `x`, `y`, and `z` are expressed in metres;
+- `rx`, `ry`, and `rz` form a rotation vector in radians, not direct roll-pitch-yaw angles;
+- `a` is tool acceleration in `m/s^2`;
+- `v` is tool velocity in `m/s`;
+- `t` and `r` have the same timing and blending roles as in `movej`. In particular, when `t > 0`, the UR controller ignores `a` and `v`.
+
+For this example, the generated instruction is approximately:
+
+```urscript
+movel(p[-0.300000,-0.300000,0.300000,1.570796,0.000000,0.000000],
+      a=0.5, v=0.1, r=0.0)
+```
+
+Again, `t` is absent because `time: -1`. With `time: 3.0`, the generator includes `t=3.0`, and the UR controller uses that duration instead of `a` and `v`:
+
+```urscript
+movel(p[-0.300000,-0.300000,0.300000,1.570796,0.000000,0.000000],
+      a=0.5, v=0.1, t=3.0, r=0.0)
+```
+
+The conversion is implemented in `RobotController.build_movel_script()`. It constructs the pose from `target_xyz_mm` and `target_rpy_deg`, converts it to the UR rotation-vector representation with RoboDK's `Pose_2_UR()`, and converts millimetres to metres. `RobotController.movel_pose()` then calls RoboDK's `MoveL()` and/or sends the URScript instruction.
+
+### Sequence execution
+
+`RobotController.execute_sequence()` reads the YAML steps in order:
+
+```text
+motion: moveJ -> movej(...)
+motion: moveL -> movel(...)
+```
+
+`RobotController.send_script()` transmits each generated instruction to the real UR5e with:
+
+```python
+self.robot_socket.sendall((script.strip() + "\n").encode("utf-8"))
+```
+
+This second socket connects to `ROBOT_IP` on UR controller port `30002`. It is separate from the classroom socket on port `5000` explained below.
+
 ## What crosses the socket
 
 The command-line argument is a local behavior name:
@@ -44,7 +169,7 @@ The command-line argument is a local behavior name:
 python3 motion_client.py handshake
 ```
 
-The client resolves that name through `MOTIONS` and sends the corresponding YAML file contents. It does not give the Student PC direct control of the UR5e.
+The client resolves that name through `MOTIONS` and sends the corresponding YAML file contents through the **classroom socket on port 5000**. It does not give the Student PC direct control of the UR5e and it does not send the generated URScript.
 
 ```yaml
 sequence_name: wave

@@ -296,8 +296,7 @@ flowchart LR
 
 The implementation adds these components to `social_robot_hri`:
 
-- `face_verification.py`: camera and face-comparison helper;
-- `face_verification_node.py`: authorises the user once and republishes approved requests;
+- `face_verification_node.py`: performs camera face comparison, authorises the user once, and republishes approved requests;
 - `face_voice_hri.launch.py`: starts voice recognition, interpretation, and the face gate.
 
 Install the Ubuntu build dependencies and Python packages:
