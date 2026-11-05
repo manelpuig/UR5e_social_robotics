@@ -39,10 +39,15 @@ ROS packages such as `rclpy`, which were installed with `apt`:
 
 ```bash
 cd ~/UR5e_social_robotics
-python3 --version                 # expected: Python 3.10.x
-python3 -m venv --system-site-packages .venv-humble
+source /opt/ros/humble/setup.bash
+
+/usr/bin/python3 --version       # expected: Python 3.10.x
+/usr/bin/python3 -m venv --system-site-packages .venv-humble
+touch .venv-humble/COLCON_IGNORE
+
 source .venv-humble/bin/activate
 python -m pip install --upgrade pip wheel
+python -m pip install "setuptools==79.0.1"
 ```
 
 Install the project dependencies. The face requirements already include the
@@ -50,7 +55,19 @@ voice requirements:
 
 ```bash
 python -m pip install -r src/social_robot_hri/requirements_face.txt
+python -m pip install openai python-dotenv pyttsx3
+python -m pip install "SpeechRecognition[openai]"
 python -m pip install ultralytics
+```
+
+Keep `setuptools==79.0.1`: the installed `colcon-core 0.21.1`
+requires `setuptools<80`. Do not upgrade setuptools without checking
+colcon compatibility.
+
+Check dependency compatibility after installation:
+
+```bash
+python -m pip check
 ```
 
 Ultralytics is only required by the vision exercises that use it. Verify the
@@ -62,28 +79,75 @@ python -c "import cv2, face_recognition, speech_recognition; print('HRI OK')"
 python -c "import ultralytics; print('Ultralytics OK')"
 ```
 
-For each new terminal, source ROS, the built workspace and the virtual
-environment in this order:
+#### Build with the virtual environment's Python
+
+In a fresh terminal, build from the repository root using the virtual
+environment's Python explicitly. Activating the environment alone does
+not change the interpreter used by `/usr/bin/colcon`.
 
 ```bash
-source /opt/ros/humble/setup.bash
-source ~/UR5e_social_robotics/install/setup.bash
-source ~/UR5e_social_robotics/.venv-humble/bin/activate
 cd ~/UR5e_social_robotics
+source /opt/ros/humble/setup.bash
+source .venv-humble/bin/activate
+
+.venv-humble/bin/python /usr/bin/colcon build \
+    --symlink-install \
+    --base-paths src
+
+source install/setup.bash
 ```
+
+Use this command for subsequent builds too. `--base-paths src` limits
+package discovery to the source directory.
+
+Existing Python packages built with the system interpreter must be
+rebuilt using this command.
+
+For the perception package, verify the generated executable:
+
+```bash
+head -n 1 install/social_robot_perception/lib/social_robot_perception/pose_3d_node
+```
+
+The interpreter on the first line must point inside `.venv-humble`.
+
+#### Prepare each terminal before running nodes
+
+After the first successful build:
+
+```bash
+cd ~/UR5e_social_robotics
+source /opt/ros/humble/setup.bash
+source .venv-humble/bin/activate
+source install/setup.bash
+```
+
+For direct execution or debugging in VS Code, select
+`.venv-humble/bin/python` using **Python: Select Interpreter**.
+This setting does not regenerate executables used by `ros2 run`
+or `ros2 launch`.
 
 `.venv-humble` is local to this installation and must not be committed or
 copied to another computer. The Docker workflow uses the same environment name
 and Python version, but creates its own environment inside the container.
 
-Verify the `.bashrc` file:
-````bash
+Optional: add the following to `~/.bashrc` to prepare new terminals
+automatically:
+
+```bash
 source /opt/ros/humble/setup.bash
 source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
-source /home/user/UR5e_social_robotics/install/setup.bash
-source /home/user/UR5e_social_robotics/.venv-humble/bin/activate
-cd /home/user/UR5e_social_robotics
-```` 
+
+source ~/UR5e_social_robotics/.venv-humble/bin/activate
+
+if [ -f ~/UR5e_social_robotics/install/setup.bash ]; then
+    source ~/UR5e_social_robotics/install/setup.bash
+fi
+```
+
+Build commands must still be run from the repository root using
+`.venv-humble/bin/python /usr/bin/colcon`.
+
 To sync you have to:
 ````bash
 git add .
@@ -222,6 +286,7 @@ To properly start working on the UR5e with ROS2 Humble we have to:
     - Source ROS:
         ```bash
         source /opt/ros/humble/setup.bash
+        source ~/UR5e_social_robotics/.venv-humble/bin/activate
         source ~/UR5e_social_robotics/install/setup.bash
         ```
     - Run the UR driver:
