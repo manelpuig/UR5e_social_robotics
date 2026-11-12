@@ -12,7 +12,7 @@ services:
    
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - ROS_DOMAIN_ID=5 # ⚠️ numero del grup/robot (1,2,3,4)
+      - ROS_DOMAIN_ID=0 # UR5e default; override in a terminal for rUBot 1–4
       - ROS_LOCALHOST_ONLY=0
       - CYCLONEDDS_URI=file:///root/UR5e_social_robotics/Documentation/Files/Docker/cyclonedds_teacher.xml
       # X11 / rendering

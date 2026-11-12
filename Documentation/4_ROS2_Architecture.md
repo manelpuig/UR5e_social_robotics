@@ -2,6 +2,29 @@
 
 This document explains the architecture used in the second project session. For installation and execution commands, follow the [ROS 2 execution guide](../src/1_Instructions_ros2_SocialRobotics_Project.md).
 
+## ROS 2 classroom communication
+
+Follow [Classroom architecture](2_UR5e_Classroom_Architecture.md) for IPs, DDS
+checks and temporary domain changes. The default domain is `0`, independently
+of Student PC number. The Teacher container uses host networking and obtains
+ROS variables from Compose. Its [CycloneDDS XML](Files/Docker/cyclonedds_teacher.xml)
+selects `192.168.1.5`; students use CycloneDDS with multicast and domain `0`.
+
+To connect to a rUBot, temporarily export `ROS_DOMAIN_ID=1`, `2`, `3` or `4`
+in each participating container terminal before launching nodes, matching the
+rUBot. Return to `0` for the UR5e. Existing nodes must be restarted to change domain.
+
+| Verification phase | Required components |
+|---|---|
+| DDS data exchange | Talker and listener on separate computers |
+| Discovery of `/ur5e/run_sequence` | Sequence Server and installed interfaces |
+| Real motion | Sequence Server, pose execution, MoveIt IK, UR driver/controllers and active External Control |
+
+Service discovery does not require External Control and does not establish
+that the real robot is ready to move. Only one execution system should control
+the robot at a time. Server serialisation does not block other nodes from
+calling exposed controllers directly.
+
 ## Learning objectives
 
 Students should be able to:

@@ -13,9 +13,10 @@ Use equivalent poses in both implementations so that their communication and exe
 
 Before starting the practical sessions:
 
-1. read [Python sockets architecture](3_Python_Sockets_Architecture.md);
-2. read [ROS 2 architecture](4_ROS2_Architecture.md);
-3. review the sessions, responsibilities and deliverables in this document.
+1. read [Classroom architecture](2_UR5e_Classroom_Architecture.md) for shared networking and default domain `0`;
+2. read [Python sockets architecture](3_Python_Sockets_Architecture.md);
+3. read [ROS 2 architecture](4_ROS2_Architecture.md);
+4. review the sessions, responsibilities and deliverables in this document.
 
 During each session, follow its practical guide step by step:
 
@@ -35,6 +36,9 @@ The architecture documents explain **what the system contains and how it works**
 | 2 | ROS 2 | Behavior name through a topic and service | IK and ROS 2 trajectory controller |
 
 Both architectures keep direct robot access on the Teacher PC and allow different user interfaces to request the same high-level behavior.
+
+Before each session, verify TCP or DDS communication using the classroom
+guide. Stop the previous control system before switching between sockets and ROS 2.
 
 ## Before the laboratory
 

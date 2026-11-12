@@ -28,25 +28,114 @@ Student PC 4 ─┘
 
 Only the Teacher PC runs the robot driver, MoveIt 2, trajectory controllers, and the motion execution server. Student PCs run clients or publishers that request prepared behaviors.
 
-Use the actual network values configured for the laboratory. The examples below use placeholders:
+The same physical network supports both sessions. The Teacher PC has two
+independent interfaces; students do not need direct access to the robot subnet.
 
-```text
-ROBOT_IP=<UR5E_IP>
-TEACHER_PC_IP=<TEACHER_PC_IP>
-STUDENT_PC_IP=<STUDENT_PC_IP>
+| Device | Interface | Address |
+|---|---|---|
+| Teacher PC | Classroom LAN | `192.168.1.5/24` |
+| Teacher PC | Robot Ethernet | `192.168.0.10/24` |
+| UR5e | Robot Ethernet | `192.168.0.20/24` |
+| Student PC4 (example) | Classroom LAN | `192.168.1.45/24` |
+
+Confirm student addresses with the instructor. The existing classroom convention
+uses `192.168.1.x5`, where `x` is the group number (1–4).
+
+| Setting | Python sockets | ROS 2 |
+|---|---|---|
+| Student environment | Windows or Ubuntu with Python | Ubuntu 22.04 and Humble |
+| Communication | TCP to `192.168.1.5:5000` | DDS topics and services |
+| ROS domain | Not used | Default `0` for all participants |
+| Teacher software | Python motion server on the host | Humble inside Docker |
+| Robot execution | URScript, TCP `30002` | UR driver and controllers |
+
+Students send requests through the communication layer; the Teacher PC runs
+the robot execution layer. The Python server does not need Docker to share
+this topology. Use the two control systems alternately, stopping the previous
+system before switching.
+
+### ROS 2 configuration and temporary domain changes
+
+[Docker Compose](Files/Docker/docker-compose.yaml) supplies the Teacher container
+with `ROS_DOMAIN_ID=0`, `ROS_LOCALHOST_ONLY=0` and
+`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`, using host networking. The
+[teacher XML](Files/Docker/cyclonedds_teacher.xml) selects classroom interface
+`192.168.1.5` with multicast enabled. Students use CycloneDDS and domain `0`;
+no student XML is required for the intended setup. Verify discovery on the
+actual classroom network.
+
+The UR5e default domain is `0`, independently of the Student PC number. To
+connect to rUBot 1, 2, 3 or 4, change the domain **inside the container terminal**
+before starting nodes. For example, for rUBot 2:
+
+```bash
+ros2 daemon stop
+export ROS_DOMAIN_ID=2  # choose 1, 2, 3 or 4 to match the rUBot
 ```
+
+Repeat the export in every participating terminal; restart any nodes that must
+join the new domain. The rUBot and other participating computers must match.
+An export affects only that shell and future child processes, not running
+nodes, other terminals or Compose. New container terminals retain default `0`.
+Return to the UR5e session with:
+
+```bash
+ros2 daemon stop
+export ROS_DOMAIN_ID=0
+```
+
+Do not add permanent domain overrides to the Teacher container's `.bashrc`.
+
+### Verify communication before motion
+
+With the Python server listening, run on a Windows Student PC:
+
+```powershell
+Test-NetConnection 192.168.1.5 -Port 5000
+```
+
+For ROS 2, first test data exchange on two computers in the same domain:
+
+```bash
+# Teacher container
+ros2 run demo_nodes_cpp talker
+```
+
+```bash
+# Student PC
+ros2 run demo_nodes_cpp listener
+```
+
+After messages arrive, stop the demos and start the Sequence Server on the
+Teacher PC. Inspect it from the Student PC:
+
+```bash
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 service type /ur5e/run_sequence
+```
+
+Expect `ur5e_interfaces/srv/RunSequence`. Listing interfaces alone does not prove
+remote data exchange. Neither DDS testing nor service discovery requires
+External Control. Real motion requires the complete execution stack and the
+robot setup described in [UR5e setup](1_UR5e_setup.md).
 
 ## Teacher PC responsibilities
 
-The Teacher PC is the central control and safety point. It:
+The Teacher PC is the supervised execution point. It:
 
 - communicates directly with the UR5e;
 - runs the UR driver and, for ROS 2, MoveIt 2;
 - receives requests from student applications;
 - validates behavior names, YAML files, poses, and motion parameters;
-- prevents concurrent or unauthorized executions;
+- serialises requests within the active motion server;
 - supervises the first execution of every student motion;
 - stops the experiment when a safety problem is detected.
+
+Server coordination is not a complete access-control or robot safety system.
+Other nodes in the same domain may reach exposed controllers directly. A ROS
+domain groups discovery; it is not an authorization boundary.
 
 Student PCs must not run the real robot driver, MoveIt 2, RTDE communication, or trajectory controllers for the classroom robot.
 

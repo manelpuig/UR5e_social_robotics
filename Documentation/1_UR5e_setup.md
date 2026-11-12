@@ -169,6 +169,12 @@ To connect a **real Universal Robots UR5e** to a **PC running Ubuntu 22.04 + ROS
 
 ### 2.1. Network Setup
 
+See [Classroom architecture](2_UR5e_Classroom_Architecture.md) for the common
+network, IP assignments and default ROS domain `0`. The steps below configure
+the dedicated Teacher PC–robot link. On an Ubuntu 24.04 Teacher host, run Humble
+inside Docker following the [Docker guide](Files/Docker/UB_Custom_Docker_container_ur5e.md).
+
+
 Ensure the PC and UR5e are connected with a proper Ethernet cable.
 
 Configure proper fixed IP addresses:
