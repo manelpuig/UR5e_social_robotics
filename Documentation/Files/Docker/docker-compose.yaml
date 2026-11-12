@@ -14,7 +14,7 @@ services:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=5 # ⚠️ numero del grup/robot (1,2,3,4)
       - ROS_LOCALHOST_ONLY=0
-      - CYCLONEDDS_URI=file:///etc/cyclonedds_teacher.xml
+      - CYCLONEDDS_URI=file:///root/UR5e_social_robotics/Documentation/Files/Docker/cyclonedds_teacher.xml
       # X11 / rendering
       - DISPLAY=${DISPLAY} # Ubuntu
       #- DISPLAY=host.docker.internal:0.0 # Windows
@@ -34,7 +34,6 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       # Repository mounted inside the container
       - /home/biorob/Desktop/UR5e_social_robotics:/root/UR5e_social_robotics
-      - ./cyclonedds_teacher.xml:/etc/cyclonedds_teacher.xml:ro
 
     entrypoint: /entrypoint_pc.sh
     command: sleep infinity
