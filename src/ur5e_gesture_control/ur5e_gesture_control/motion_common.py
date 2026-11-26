@@ -10,7 +10,7 @@ from rclpy.qos import qos_profile_sensor_data
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from moveit_msgs.action import ExecuteTrajectory, MoveGroup
-from moveit_msgs.msg import DisplayTrajectory, RobotState
+from moveit_msgs.msg import DisplayTrajectory, MoveItErrorCodes, RobotState
 from moveit_msgs.srv import GetCartesianPath, GetPositionIK
 from control_msgs.action import FollowJointTrajectory
 from tf2_ros import Buffer, TransformListener
@@ -18,6 +18,34 @@ import tf2_geometry_msgs
 
 JOINTS = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
           'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+
+ACTION_STATUS = {
+    0: 'UNKNOWN', 1: 'ACCEPTED', 2: 'EXECUTING', 3: 'CANCELING',
+    4: 'SUCCEEDED', 5: 'CANCELED', 6: 'ABORTED',
+}
+
+
+def describe_moveit_error(code):
+    """Show the MoveIt code and its message name, if this ROS version knows it."""
+    value = code.val
+    names = [name for name in dir(MoveItErrorCodes)
+             if name.isupper() and getattr(MoveItErrorCodes, name) == value]
+    name = '/'.join(names) if names else 'UNKNOWN'
+    detail = getattr(code, 'message', '')
+    source = getattr(code, 'source', '')
+    suffix = f', message={detail}' if detail else ''
+    suffix += f', source={source}' if source else ''
+    return f'{value} ({name}){suffix}'
+
+
+def describe_controller_error(result):
+    code = result.error_code
+    constants = FollowJointTrajectory.Result
+    names = [name for name in dir(constants)
+             if name.isupper() and getattr(constants, name) == code]
+    name = '/'.join(names) if names else 'UNKNOWN'
+    detail = getattr(result, 'error_string', '')
+    return f'{code} ({name})' + (f', message={detail}' if detail else '')
 
 
 class MotionContext(Node):
@@ -86,7 +114,13 @@ class MotionContext(Node):
             raise RuntimeError('Action result unavailable')
         result = result_future.result()
         if result.status != 4:
-            raise RuntimeError(f'Action failed with status {result.status}')
+            status = ACTION_STATUS.get(result.status, 'UNKNOWN')
+            details = ''
+            if isinstance(goal, (MoveGroup.Goal, ExecuteTrajectory.Goal)):
+                details = f'; MoveIt error: {describe_moveit_error(result.result.error_code)}'
+            elif isinstance(goal, FollowJointTrajectory.Goal):
+                details = f'; controller error: {describe_controller_error(result.result)}'
+            raise RuntimeError(f'Action status {result.status} ({status}){details}')
         return result.result
 
     def target(self, step):
@@ -137,7 +171,7 @@ class MotionContext(Node):
         request.ik_request.timeout.nanosec = int((timeout % 1) * 1e9)
         result = self.service(self.ik, request)
         if result.error_code.val != 1:
-            raise RuntimeError(f'IK failed: {result.error_code.val}')
+            raise RuntimeError(f'IK failed: {describe_moveit_error(result.error_code)}')
         positions = dict(zip(result.solution.joint_state.name, result.solution.joint_state.position))
         values = [float(positions[name]) for name in JOINTS]
         self.get_logger().info('IK goal (degrees): ' + str([round(math.degrees(v), 2) for v in values]))
@@ -154,7 +188,7 @@ class MotionContext(Node):
         goal.trajectory = trajectory
         result = self.action(self.trajectory_executor, goal)
         if result.error_code.val != 1:
-            raise RuntimeError(f'MoveIt execution failed: {result.error_code.val}')
+            raise RuntimeError(f'MoveIt execution failed: {describe_moveit_error(result.error_code)}')
 
 
 def end_state(start, trajectory):

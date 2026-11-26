@@ -1,7 +1,7 @@
 """Plan a collision-aware joint path to an IK solution."""
 from moveit_msgs.action import MoveGroup
 from moveit_msgs.msg import Constraints, JointConstraint
-from ur5e_gesture_control.motion_common import JOINTS, end_state
+from ur5e_gesture_control.motion_common import JOINTS, describe_moveit_error, end_state
 
 
 def move(context, step, start, execute):
@@ -26,7 +26,7 @@ def move(context, step, start, execute):
     goal.planning_options.plan_only = True
     result = context.action(context.planner, goal)
     if result.error_code.val != 1 or not result.planned_trajectory.joint_trajectory.points:
-        raise RuntimeError(f'Planning failed: {result.error_code.val}')
+        raise RuntimeError(f'Planning failed or trajectory empty: {describe_moveit_error(result.error_code)}')
     trajectory = result.planned_trajectory
     context.show(start, trajectory)
     if execute:

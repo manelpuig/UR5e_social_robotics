@@ -1,7 +1,7 @@
 """Compute a complete Cartesian path from the actual or preview state."""
 import math
 from moveit_msgs.srv import GetCartesianPath
-from ur5e_gesture_control.motion_common import JOINTS, end_state
+from ur5e_gesture_control.motion_common import JOINTS, describe_moveit_error, end_state
 
 
 def move(context, step, start, execute):
@@ -18,7 +18,7 @@ def move(context, step, start, execute):
         raise ValueError('cartesian_step_m must be positive')
     result = context.service(context.cartesian, request)
     if result.error_code.val != 1 or result.fraction < 0.999999:
-        raise RuntimeError(f'Incomplete Cartesian path: fraction={result.fraction:.3f}, error={result.error_code.val}')
+        raise RuntimeError(f'Incomplete Cartesian path: fraction={result.fraction:.3f}, MoveIt error={describe_moveit_error(result.error_code)}')
     trajectory = result.solution
     jt = trajectory.joint_trajectory
     if not jt.points or not all(j in jt.joint_names for j in JOINTS):
@@ -31,10 +31,16 @@ def move(context, step, start, execute):
     last_time = -1.0
     # Slow the already time-parameterized trajectory for both scaling factors.
     scale = min(context.velocity, math.sqrt(context.acceleration))
-    for point in jt.points:
+    for index, point in enumerate(jt.points):
         current = dict(zip(jt.joint_names, point.positions))
-        if any(abs(current[j] - previous[j]) > limit for j in JOINTS):
-            raise RuntimeError('Cartesian path contains a joint jump')
+        for joint in JOINTS:
+            delta = abs(current[joint] - previous[joint])
+            if delta > limit:
+                raise RuntimeError(
+                    f'Cartesian joint jump at point {index}, {joint}: '
+                    f'{previous[joint]:.4f} -> {current[joint]:.4f} rad; '
+                    f'difference={delta:.4f} rad, limit={limit:.4f} rad'
+                )
         previous = current
         t = point.time_from_start.sec + point.time_from_start.nanosec * 1e-9
         if t <= last_time:

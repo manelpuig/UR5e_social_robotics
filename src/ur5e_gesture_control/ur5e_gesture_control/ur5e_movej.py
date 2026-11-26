@@ -2,7 +2,7 @@
 from control_msgs.action import FollowJointTrajectory
 from moveit_msgs.msg import RobotTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
-from ur5e_gesture_control.motion_common import JOINTS, end_state
+from ur5e_gesture_control.motion_common import JOINTS, describe_controller_error, end_state
 
 
 def move(context, step, start, execute):
@@ -24,7 +24,7 @@ def move(context, step, start, execute):
         goal.trajectory = trajectory.joint_trajectory
         result = context.action(context.controller, goal)
         if result.error_code != FollowJointTrajectory.Result.SUCCESSFUL:
-            raise RuntimeError(f'Controller failed: {result.error_code}')
+            raise RuntimeError(f'Controller failed: {describe_controller_error(result)}')
     else:
         context.get_logger().info('Preview: IK endpoint only; controller interpolation is not displayed.')
     return end_state(start, trajectory)
