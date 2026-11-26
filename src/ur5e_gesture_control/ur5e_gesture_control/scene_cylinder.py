@@ -15,8 +15,8 @@ CYLINDER_ID = 'gesture_test_cylinder'
 class CylinderNode(SceneNode):
     def __init__(self):
         super().__init__('gesture_cylinder_scene')
-        for name, value in [('x_cm', -5.0), ('y_cm', -39.0),
-                            ('height_cm', 25.0), ('radius_cm', 3.5)]:
+        for name, value in [('x_cm', -8.0), ('y_cm', -38.0),
+                            ('height_cm', 35.0), ('radius_cm', 2.0)]:
             self.declare_parameter(name, value)
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)

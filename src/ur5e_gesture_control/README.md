@@ -50,11 +50,11 @@ In terminal 3, start the table and its `base_link` to `table` TF:
 ros2 run ur5e_gesture_control scene_table
 ```
 
-In terminal 4, add the cylinder:
+In terminal 4, add the default cylinder (x=-8 cm, y=-38 cm, height=35 cm,
+radius=2 cm):
 
 ```bash
-ros2 run ur5e_gesture_control scene_cylinder --ros-args \
-  -p x_cm:=-5.0 -p y_cm:=-39.0 -p height_cm:=25.0 -p radius_cm:=3.5
+ros2 run ur5e_gesture_control scene_cylinder
 ```
 
 `x_cm` and `y_cm` use the `table` frame. All dimensions are in centimetres;
@@ -69,18 +69,54 @@ ros2 launch ur5e_gesture_control ur5e_gesture.launch.py \
   sequence_file:=handshake_moveit.yaml execute:=false publish_table_tf:=false
 ```
 
+Add `publish_table_tf:=false` to the **gesture launch command** whenever
+`scene_table` is running, because `scene_table` already publishes the TF.
+Without `scene_table` or another table TF publisher, omit this argument: the
+gesture launch publishes the TF by default. The TF alone is not a table
+collision object.
+
 Inspect the scene and paths in RViz. Preview computes only the MoveJ endpoint,
 not the controller's path. It uses each predicted endpoint as the next start.
 Testing a single step with `step_name:=handshake` instead starts from the
 robot's current state.
 
-To execute with fake hardware, use the same launch with `execute:=true`. It
-replans; it does not execute the previously displayed preview. MoveJ is not
+To execute with fake hardware while `scene_table` is running:
+
+```bash
+ros2 launch ur5e_gesture_control ur5e_gesture.launch.py \
+  sequence_file:=handshake_moveit.yaml execute:=true publish_table_tf:=false
+```
+
+It replans; it does not execute the previously displayed preview. MoveJ is not
 collision checked. Start with fake hardware and inspect the result before any
 real robot test.
 
 To change the cylinder, stop its node with Ctrl+C and run it again with new
-parameters. At the end, stop the cylinder and then the table while MoveIt is
+parameters. For example, compare these two obstacle heights in RViz:
+
+```bash
+# 35 cm: the default test
+ros2 run ur5e_gesture_control scene_cylinder --ros-args \
+  -p x_cm:=-8.0 -p y_cm:=-38.0 -p height_cm:=35.0 -p radius_cm:=2.0
+```
+![](./Init.png)
+![](./handshake.png)
+```bash
+# 38 cm: the taller obstacle test
+ros2 run ur5e_gesture_control scene_cylinder --ros-args \
+  -p x_cm:=-8.0 -p y_cm:=-38.0 -p height_cm:=38.0 -p radius_cm:=2.0
+```
+![](./Init_colision.png)
+![](./handshake_colision.png)
+
+Run only one cylinder node at a time and preview the same gesture for each
+height. In the observed fake-hardware test, 35 cm allowed a smooth, nearly
+direct planned path. At 38 cm, the planned movement visibly went around the
+obstacle and the complete gesture finished. The exact path can vary with the
+robot start state, planning scene and planner. Check the result in RViz; neither
+outcome is guaranteed for every run. MoveJ remains unchecked for collisions.
+
+At the end, stop the cylinder and then the table while MoveIt is
 still running; each node removes its object. If cleanup fails, stop the relevant
 node and run:
 
