@@ -24,5 +24,6 @@ setup(
         'ur5e_movej = ur5e_gesture_control.ur5e_movej:main',
         'ur5e_movel = ur5e_gesture_control.ur5e_movel:main',
         'ur5e_planned = ur5e_gesture_control.ur5e_planned:main',
+        'ur5e_test_scene = ur5e_gesture_control.ur5e_test_scene:main',
     ]},
 )

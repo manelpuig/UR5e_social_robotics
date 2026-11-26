@@ -137,6 +137,58 @@ Use `ur5e_movel` with `step_name:=handshake` or `ur5e_planned` with
 `step_name:=approach_handshake`. Each executable requires the selected step to
 have the matching `motion_type`.
 
+## Test a planned step with an obstacle
+
+The independent `ur5e_test_scene` executable adds a table and a vertical
+cylinder to the shared MoveIt planning scene. It does not change the robot
+model or start automatically with the gesture. The table is 1 x 1 x 0.05 m,
+with its top at `base_link` z=0. The cylinder is 0.50 m high, radius 0.035 m,
+centred at `(0.125, 0.375, 0.25)` m in `base_link`. Its axis is vertical and
+its bottom is at the table surface. The centre of its axis lies above the
+horizontal midpoint of `home_start` and `approach_handshake` in the example
+YAML, using the classroom 180-degree table transform. It does not necessarily
+intersect the actual planned trajectory; inspect RViz.
+
+Build and source the package as described above. Start the fake driver, MoveIt
+and RViz, then run this in another sourced terminal:
+
+```bash
+ros2 run ur5e_gesture_control ur5e_test_scene
+```
+
+Keep that terminal open. Wait for `Table and cylinder added` and check both
+objects in RViz. Stop the original `ur5e_robot_controller` test scene first;
+its table and this table should not be present at the same time. The new node
+also refuses to replace its own existing IDs. The scene is shared by all
+clients of this MoveIt instance, so do not run this test during the class.
+
+In another sourced terminal, preview the complete gesture:
+
+```bash
+ros2 launch ur5e_gesture_control ur5e_gesture.launch.py \
+  sequence_file:=handshake_moveit.yaml execute:=false
+```
+
+The `approach_handshake` plan starts from the predicted `home_start` endpoint.
+Inspect its path around the cylinder in RViz and compare it with a preview
+without the cylinder. It may take a different path, fail if no plan is found,
+or already avoid the cylinder without any change. A successful preview does
+not check the direct MoveJ path. If the initial state or a target collides
+with an object, planning can fail; inspect the robot and scene in RViz.
+Testing only `step_name:=approach_handshake` starts from the actual joint
+state, not the predicted `home_start` state.
+
+When finished, press Ctrl+C in the test-scene terminal while MoveIt is still
+running. Check that both objects disappear in RViz. If cleanup fails or the
+process is killed, with MoveIt still running and the scene node stopped, run:
+
+```bash
+ros2 run ur5e_gesture_control ur5e_test_scene --ros-args -p remove_only:=true
+```
+
+This removes only `gesture_test_table` and `gesture_test_cylinder`. Do not use
+the cleanup command while another instance of this test scene is active.
+
 ## Future improvements
 
 1. Check the actual direct joint trajectory against the planning scene, with
