@@ -40,7 +40,8 @@ class MotionContext(Node):
         self.ik = self.create_client(GetPositionIK, '/compute_ik')
         self.cartesian = self.create_client(GetCartesianPath, '/compute_cartesian_path')
         self.planner = ActionClient(self, MoveGroup, '/move_action')
-        self.executor = ActionClient(self, ExecuteTrajectory, '/execute_trajectory')
+        # Node.executor belongs to rclpy; keep the action client under its own name.
+        self.trajectory_executor = ActionClient(self, ExecuteTrajectory, '/execute_trajectory')
         self.controller = ActionClient(self, FollowJointTrajectory, common.get(
             'controller_action', '/scaled_joint_trajectory_controller/follow_joint_trajectory'))
         self.display = self.create_publisher(DisplayTrajectory, '/display_planned_path', 10)
@@ -151,7 +152,7 @@ class MotionContext(Node):
     def execute_trajectory(self, trajectory):
         goal = ExecuteTrajectory.Goal()
         goal.trajectory = trajectory
-        result = self.action(self.executor, goal)
+        result = self.action(self.trajectory_executor, goal)
         if result.error_code.val != 1:
             raise RuntimeError(f'MoveIt execution failed: {result.error_code.val}')
 
