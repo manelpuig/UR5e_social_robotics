@@ -143,11 +143,11 @@ The independent `ur5e_test_scene` executable adds a table and a vertical
 cylinder to the shared MoveIt planning scene. It does not change the robot
 model or start automatically with the gesture. The table is 1 x 1 x 0.05 m,
 with its top at `base_link` z=0. The cylinder is 0.50 m high, radius 0.035 m,
-centred at `(0.125, 0.375, 0.25)` m in `base_link`. Its axis is vertical and
-its bottom is at the table surface. The centre of its axis lies above the
-horizontal midpoint of `home_start` and `approach_handshake` in the example
-YAML, using the classroom 180-degree table transform. It does not necessarily
-intersect the actual planned trajectory; inspect RViz.
+centred at `(0.05, 0.39, 0.25)` m in `base_link`. Its axis is vertical and
+its bottom is at the table surface. This trial position is closer to
+`home_start` than the original midpoint position. Check both endpoint robot
+configurations for collision in RViz; this position has not been validated
+against the robot model and may not intersect the planned trajectory.
 
 Build and source the package as described above. Start the fake driver, MoveIt
 and RViz, then run this in another sourced terminal:

@@ -73,10 +73,10 @@ class TestScene(Node):
         # Cylinder dimensions are [height, radius] in metres.
         shape.dimensions = [0.50, 0.035]
         cylinder_pose = Pose()
-        # Midpoint in table coordinates is (-0.125, -0.375, 0.4).
-        # The classroom TF rotates table by 180 degrees around Z.
-        cylinder_pose.position.x = 0.125
-        cylinder_pose.position.y = 0.375
+        # Trial position closer to home_start than to approach_handshake.
+        # Validate both endpoint configurations against the cylinder in RViz.
+        cylinder_pose.position.x = 0.05
+        cylinder_pose.position.y = 0.39
         cylinder_pose.position.z = 0.25
         cylinder_pose.orientation.w = 1.0
         cylinder.primitives.append(shape)
