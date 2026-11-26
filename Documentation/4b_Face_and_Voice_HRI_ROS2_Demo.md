@@ -58,32 +58,36 @@ Place the authorised user’s photo in `Documentation/Files/Camera&Microphone` a
 ~/UR5e_social_robotics/Documentation/Files/Camera&Microphone/Manel.png
 ```
 
-## 1. Prepare every terminal
+## 1. Prepare Teacher PC container
 
-In one Teacher container terminal, build the HRI package with the virtual environment's Python:
+In one Host terminal, launch the custom ROS2 Humble Container:
+```bash
+xhost +local:root
+chmod +x entrypoint_pc.sh
+docker compose up -d
+```
+
+In Teacher container terminal, build the repository with the virtual environment's Python:
 
 ```bash
-cd /root/UR5e_social_robotics
-source /opt/ros/humble/setup.bash
-.venv-humble/bin/python -m colcon build --packages-select social_robot_hri social_robot_behaviors
-head -n 1 install/social_robot_hri/lib/social_robot_hri/{voice_node,face_verification_node}
+.venv-humble/bin/python -m colcon build
 ```
 
 Both executable headers should point to `/root/UR5e_social_robotics/.venv-humble/bin/python`. Activating the virtual environment alone does not change the interpreter recorded in previously built executables.
 
-Then run this in every Teacher container terminal:
-
+Open the `.bashrc` file and copy these lines at the end:
 ```bash
-cd /root/UR5e_social_robotics
+# ROS 2 Humble
 source /opt/ros/humble/setup.bash
-source .venv-humble/bin/activate
-source install/setup.bash
-```
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
 
-Verify that every terminal uses the same domain:
+# Project workspace
+source /root/UR5e_social_robotics/install/setup.bash
 
-```bash
-echo "$ROS_DOMAIN_ID"
+# Python virtual environment for ROS HRI and YOLO
+source /root/UR5e_social_robotics/.venv-humble/bin/activate
+
+cd /root/UR5e_social_robotics
 ```
 
 ### Start the Orbbec Gemini 2
@@ -136,28 +140,32 @@ Teacher terminal 4:
 ros2 launch social_robot_behaviors social_behavior.launch.py
 ```
 
-Teacher terminal 5:
-
-```bash
-ros2 topic echo /social_behavior
-```
-
-Before starting the HRI launch, run `ros2 topic info /social_behavior/result`
-in a prepared terminal and verify that `Publisher count` is `1`. If it is
-`0`, restart the Behavior Manager after sourcing `install/setup.bash`.
-
 ### Check the microphone
 
-In Teacher terminal 6, from the repository root, list the microphones and
-test the Jabra. Replace `6` with the index shown next to `Jabra SPEAK 510 USB`.
-
+To properly install the `Jabra SPEAK 510 USB` microphone, open a new terminal and install:
 ```bash
-python "Documentation/Files/Camera&Microphone/voice_transcription_node.py" --list-mics
-python "Documentation/Files/Camera&Microphone/voice_transcription_node.py" --mic 6
+apt update
+apt install -y alsa-utils
+```
+To identify the `speaker_device`, type:
+```bash
+aplay -l
 ```
 
-At `Listening...`, say **robot give me five** and check the `Transcription:`
-line. Press Ctrl+C to release the microphone, then launch the demo in the same
+To identify the `microphone_index`:
+- list the microphones
+```bash
+python "Documentation/Files/Camera&Microphone/voice_transcription_node.py" --list-mics
+```
+- test the Jabra microphone. 
+
+```bash
+python "Documentation/Files/Camera&Microphone/voice_transcription_node.py" --mic 6
+```
+- Replace `6` with the index shown next to `Jabra SPEAK 510 USB`.
+- At `Listening...`, say **robot give me five** and check the `Transcription:`
+line. 
+- Press Ctrl+C to release the microphone, then launch the demo in the same
 terminal. The default index is `6`. Use the index you just tested if it differs.
 
 ```bash
